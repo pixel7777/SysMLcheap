@@ -3,96 +3,96 @@
 # ============================================================================
 
 actors:
-  - id: act-learner
+  - id: act_learner
     name: Learner
     documentation: >
       A Croatian language learner who interacts with the system through
       a web browser. The primary user — plays the TTRPG, reviews vocabulary,
       and progresses through stories.
-    ownerRef: pkg-behavioral
-    useCaseRefs: [uc-play-session, uc-review-vocab, uc-session-zero, uc-manage-codex, uc-view-progress]
+    ownerRef: pkg_behavioral
+    useCaseRefs: [uc_play_session, uc_review_vocab, uc_session_zero, uc_manage_codex, uc_view_progress]
     realizedByRefs: []  # TBD — will link to context part properties
 
-  - id: act-ai-provider
+  - id: act_ai_provider
     name: AI Provider
     documentation: >
       External AI language model service (e.g., Claude, GPT) that generates
       narrative content, evaluates free-text responses, and calibrates
       difficulty. Accessed via API.
-    ownerRef: pkg-behavioral
-    useCaseRefs: [uc-play-session, uc-review-vocab]
+    ownerRef: pkg_behavioral
+    useCaseRefs: [uc_play_session, uc_review_vocab]
     realizedByRefs: []
 
 useCases:
-  - id: uc-session-zero
+  - id: uc_session_zero
     name: Configure New Story (Session 0)
     documentation: >
       Learner sets up a new story: selects genre, tone, lines & veils,
       and creates a character concept. Conducted in English. Produces
       a story configuration that guides all subsequent AI-DM behavior.
-    ownerRef: pkg-behavioral
-    actorRefs: [act-learner]
-    traceRefs: [req-session-zero]
+    ownerRef: pkg_behavioral
+    actorRefs: [act_learner]
+    traceRefs: [req_session_zero]
 
-  - id: uc-play-session
+  - id: uc_play_session
     name: Play Story Session
     documentation: >
       Core gameplay loop. Learner interacts with AI-DM in Croatian through
       multiple choice and free text. AI generates narrative, presents choices,
       evaluates responses, triggers dice rolls, and updates vocabulary/grammar
       tracking. Session has a configurable time budget.
-    ownerRef: pkg-behavioral
-    actorRefs: [act-learner, act-ai-provider]
-    traceRefs: [req-ai-dm, req-immersion]
-    includeRefs: [uc-roll-dice, uc-assess-response]
+    ownerRef: pkg_behavioral
+    actorRefs: [act_learner, act_ai_provider]
+    traceRefs: [req_ai_dm, req_immersion]
+    includeRefs: [uc_roll_dice, uc_assess_response]
 
-  - id: uc-review-vocab
+  - id: uc_review_vocab
     name: Review Vocabulary
     documentation: >
       SRS-driven review mode. System presents due vocabulary items for review
       using contextual recall (scenes where the word appeared). Supports
       both recognition and production testing.
-    ownerRef: pkg-behavioral
-    actorRefs: [act-learner, act-ai-provider]
-    traceRefs: [req-vocab-tracking, req-srs-scheduling]
+    ownerRef: pkg_behavioral
+    actorRefs: [act_learner, act_ai_provider]
+    traceRefs: [req_vocab_tracking, req_srs_scheduling]
 
-  - id: uc-manage-codex
+  - id: uc_manage_codex
     name: Manage Wiki/Codex
     documentation: >
       Learner views and edits the story codex: NPCs, locations, items,
       timeline. Entries are auto-generated during play and user-editable.
       Codex entries are used for AI context management (NovelCrafter-style).
-    ownerRef: pkg-behavioral
-    actorRefs: [act-learner]
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_behavioral
+    actorRefs: [act_learner]
+    traceRefs: [src_design_doc]
 
-  - id: uc-view-progress
+  - id: uc_view_progress
     name: View Learning Progress
     documentation: >
       Learner views their language learning progress: vocabulary mastery
       distribution, grammar rules learned, SRS statistics, and story
       completion status.
-    ownerRef: pkg-behavioral
-    actorRefs: [act-learner]
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_behavioral
+    actorRefs: [act_learner]
+    traceRefs: [src_design_doc]
 
-  - id: uc-roll-dice
+  - id: uc_roll_dice
     name: Roll Dice (L&F Mechanic)
     documentation: >
       Lasers & Feelings dice resolution. Player rolls d6s, results compared
       against their stat number. Determines narrative outcome (success,
       failure, mixed, critical). Triggered during story play.
-    ownerRef: pkg-behavioral
+    ownerRef: pkg_behavioral
     actorRefs: []
-    traceRefs: [src-lasers-feelings]
+    traceRefs: [src_lasers_feelings]
     extensionPoints: []
 
-  - id: uc-assess-response
+  - id: uc_assess_response
     name: Assess Learner Response
     documentation: >
       AI evaluates the learner's Croatian response (free text or MC selection).
       Updates vocabulary mastery levels, grammar exposure tracking, and
       determines game-point awards. Free text earns higher assessment weight.
-    ownerRef: pkg-behavioral
+    ownerRef: pkg_behavioral
     actorRefs: []
-    traceRefs: [req-vocab-tracking]
+    traceRefs: [req_vocab_tracking]

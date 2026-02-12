@@ -4,36 +4,36 @@ skinparam class {
   BackgroundColor<<physical>> Plum
 }
 
-class "User Interaction" <<logical>> as ib-log-user-interaction {
+class "User Interaction" <<logical>> as ib_log_user_interaction {
   inout player input : Player Input
   out narrative output : Narrative Output
   out multiple choice options : Multiple Choice Options
 }
 
-class "AI Interface" <<logical>> as ib-log-ai-interface {
+class "AI Interface" <<logical>> as ib_log_ai_interface {
   out prompt : AI Prompt
   inout response : AI Response
 }
 
-class "Language Services" <<logical>> as ib-log-language-services {
+class "Language Services" <<logical>> as ib_log_language_services {
   inout vocabulary query : Vocabulary Query
   out assessment result : Assessment Result
 }
 
-class "Player Input" <<signal>> as sig-player-input
-class "Narrative Output" <<signal>> as sig-narrative-output
-class "Multiple Choice Options" <<signal>> as sig-mc-options
-class "AI Prompt" <<signal>> as sig-ai-prompt
-class "AI Response" <<signal>> as sig-ai-response
-class "Vocabulary Query" <<signal>> as sig-vocab-query
-class "Assessment Result" <<signal>> as sig-assessment-result
+class "Player Input" <<signal>> as sig_player_input
+class "Narrative Output" <<signal>> as sig_narrative_output
+class "Multiple Choice Options" <<signal>> as sig_mc_options
+class "AI Prompt" <<signal>> as sig_ai_prompt
+class "AI Response" <<signal>> as sig_ai_response
+class "Vocabulary Query" <<signal>> as sig_vocab_query
+class "Assessment Result" <<signal>> as sig_assessment_result
 
-ib-log-user-interaction ..> sig-player-input : <<conveys>>
-ib-log-user-interaction ..> sig-narrative-output : <<conveys>>
-ib-log-user-interaction ..> sig-mc-options : <<conveys>>
-ib-log-ai-interface ..> sig-ai-prompt : <<conveys>>
-ib-log-ai-interface ..> sig-ai-response : <<conveys>>
-ib-log-language-services ..> sig-vocab-query : <<conveys>>
-ib-log-language-services ..> sig-assessment-result : <<conveys>>
+ib_log_user_interaction ..> sig_player_input : <<conveys>>
+ib_log_user_interaction ..> sig_narrative_output : <<conveys>>
+ib_log_user_interaction ..> sig_mc_options : <<conveys>>
+ib_log_ai_interface ..> sig_ai_prompt : <<conveys>>
+ib_log_ai_interface ..> sig_ai_response : <<conveys>>
+ib_log_language_services ..> sig_vocab_query : <<conveys>>
+ib_log_language_services ..> sig_assessment_result : <<conveys>>
 
 @enduml

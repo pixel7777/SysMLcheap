@@ -2,27 +2,27 @@
 left to right direction
 skinparam packageStyle rectangle
 
-actor "Learner" as act-learner
-actor "AI Provider" as act-ai-provider
+actor "Learner" as act_learner
+actor "AI Provider" as act_ai_provider
 
 rectangle "Croatian Learning App" {
-  usecase "Configure New Story (Session 0)" as uc-session-zero
-  usecase "Play Story Session" as uc-play-session
-  usecase "Review Vocabulary" as uc-review-vocab
-  usecase "Manage Wiki/Codex" as uc-manage-codex
-  usecase "View Learning Progress" as uc-view-progress
-  usecase "Roll Dice (L&F Mechanic)" as uc-roll-dice
-  usecase "Assess Learner Response" as uc-assess-response
+  usecase "Configure New Story (Session 0)" as uc_session_zero
+  usecase "Play Story Session" as uc_play_session
+  usecase "Review Vocabulary" as uc_review_vocab
+  usecase "Manage Wiki/Codex" as uc_manage_codex
+  usecase "View Learning Progress" as uc_view_progress
+  usecase "Roll Dice (L&F Mechanic)" as uc_roll_dice
+  usecase "Assess Learner Response" as uc_assess_response
 }
 
-act-learner --> uc-play-session
-act-learner --> uc-review-vocab
-act-learner --> uc-session-zero
-act-learner --> uc-manage-codex
-act-learner --> uc-view-progress
-act-ai-provider --> uc-play-session
-act-ai-provider --> uc-review-vocab
-uc-play-session ..> uc-roll-dice : <<include>>
-uc-play-session ..> uc-assess-response : <<include>>
+act_learner --> uc_play_session
+act_learner --> uc_review_vocab
+act_learner --> uc_session_zero
+act_learner --> uc_manage_codex
+act_learner --> uc_view_progress
+act_ai_provider --> uc_play_session
+act_ai_provider --> uc_review_vocab
+uc_play_session ..> uc_roll_dice : <<include>>
+uc_play_session ..> uc_assess_response : <<include>>
 
 @enduml

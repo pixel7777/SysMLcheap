@@ -7,44 +7,44 @@ skinparam class {
   BackgroundColor<<software>> LightYellow
 }
 
-class "Croatian Learning App Context" <<context>> as blk-log-context {
+class "Croatian Learning App Context" <<context>> as blk_log_context {
 }
 
-class "Learner" <<external>> as blk-log-learner-ext {
+class "Learner" <<external>> as blk_log_learner_ext {
   <<port>> ui : User Interaction
 }
 
-class "AI Provider" <<external>> as blk-log-ai-ext {
+class "AI Provider" <<external>> as blk_log_ai_ext {
   <<port>> ~api : AI Interface
 }
 
-class "Learning App" <<logical>> as blk-log-system {
+class "Learning App" <<logical>> as blk_log_system {
   <<port>> ~ui : User Interaction
   <<port>> ai : AI Interface
 }
 
-class "Game Engine" <<logical>> as blk-log-game-engine {
+class "Game Engine" <<logical>> as blk_log_game_engine {
   <<port>> language services : Language Services
   <<port>> ai services : AI Interface
 }
 
-class "Language Engine" <<logical>> as blk-log-language-engine {
+class "Language Engine" <<logical>> as blk_log_language_engine {
   <<port>> ~language services : Language Services
 }
 
-class "AI Orchestrator" <<logical>> as blk-log-ai-orchestrator {
+class "AI Orchestrator" <<logical>> as blk_log_ai_orchestrator {
   <<port>> ai api : AI Interface
 }
 
-class "User Manager" <<logical>> as blk-log-user-manager {
+class "User Manager" <<logical>> as blk_log_user_manager {
 }
 
-blk-log-context *-- blk-log-system : learning app
-blk-log-context *-- blk-log-learner-ext : learner
-blk-log-context *-- blk-log-ai-ext : ai provider
-blk-log-system *-- blk-log-game-engine : game engine
-blk-log-system *-- blk-log-language-engine : language engine
-blk-log-system *-- blk-log-ai-orchestrator : ai orchestrator
-blk-log-system *-- blk-log-user-manager : user manager
+blk_log_context *-- blk_log_system : learning app
+blk_log_context *-- blk_log_learner_ext : learner
+blk_log_context *-- blk_log_ai_ext : ai provider
+blk_log_system *-- blk_log_game_engine : game engine
+blk_log_system *-- blk_log_language_engine : language engine
+blk_log_system *-- blk_log_ai_orchestrator : ai orchestrator
+blk_log_system *-- blk_log_user_manager : user manager
 
 @enduml

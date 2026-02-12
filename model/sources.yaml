@@ -3,17 +3,17 @@
 # ============================================================================
 
 sources:
-  - id: src-design-doc
+  - id: src_design_doc
     name: Croatian App Design Document
     fileOrUrl: /home/ubuntu/.openclaw/workspace/croatian-app-design.md
-    ownerRef: pkg-sources
+    ownerRef: pkg_sources
 
-  - id: src-srs-research
+  - id: src_srs_research
     name: SRS Algorithm Research
     fileOrUrl: https://en.wikipedia.org/wiki/Spaced_repetition
-    ownerRef: pkg-sources
+    ownerRef: pkg_sources
 
-  - id: src-lasers-feelings
+  - id: src_lasers_feelings
     name: Lasers & Feelings RPG System
     fileOrUrl: http://onesevendesign.com/lasers_and_feelings_rpg.pdf
-    ownerRef: pkg-sources
+    ownerRef: pkg_sources

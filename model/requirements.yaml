@@ -4,101 +4,101 @@
 
 requirements:
   # --- Core Learning Requirements ---
-  - id: req-vocab-tracking
+  - id: req_vocab_tracking
     name: Vocabulary Mastery Tracking
     text: >
       The system shall track vocabulary mastery across four levels:
       seen, recognized, can produce, and mastered. Mastery levels shall
       persist across stories.
     kind: functional
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc]
     satisfiedByRefs: []   # TBD — will link to logical blocks
 
-  - id: req-srs-scheduling
+  - id: req_srs_scheduling
     name: SRS-Based Review Scheduling
     text: >
       The system shall schedule vocabulary review using a spaced repetition
       algorithm. Review intervals shall increase with demonstrated mastery
       and decrease on failure.
     kind: functional
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc, src-srs-research]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc, src_srs_research]
     satisfiedByRefs: []
 
-  - id: req-grammar-progressive
+  - id: req_grammar_progressive
     name: Progressive Grammar Introduction
     text: >
       The system shall introduce Croatian grammar rules progressively,
       ordered by pedagogical complexity. Each rule shall be introduced
       with a pop-up explanation on first encounter.
     kind: functional
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc]
     satisfiedByRefs: []
 
-  - id: req-ai-dm
+  - id: req_ai_dm
     name: AI Dungeon Master Content Generation
     text: >
       The system shall use an AI language model to generate interactive
       narrative content in Croatian, acting as a Dungeon Master. Content
       difficulty shall be calibrated to the learner's current proficiency level.
     kind: functional
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc]
     satisfiedByRefs: []
 
-  - id: req-immersion
+  - id: req_immersion
     name: Croatian Immersion During Gameplay
     text: >
       During gameplay, all narrative content, multiple choice options, and
       NPC dialogue shall be presented in Croatian. English shall be minimized
       to help buttons and explicit instructor-mode requests.
     kind: functional
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc]
     satisfiedByRefs: []
 
-  - id: req-session-zero
+  - id: req_session_zero
     name: Session Zero in English
     text: >
       The system shall conduct Session 0 (genre selection, tone, lines & veils,
       character concept) entirely in English to ensure zero ambiguity in
       game setup.
     kind: functional
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc, src-lasers-feelings]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc, src_lasers_feelings]
     satisfiedByRefs: []
 
-  - id: req-no-data-loss
+  - id: req_no_data_loss
     name: No User Data Loss
     text: >
       The system shall never lose user data. Database storage shall be
       separate from application code. All user progress, vocabulary mastery,
       and story state shall be persisted durably.
     kind: constraint
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc]
     satisfiedByRefs: []
 
-  - id: req-mobile-friendly
+  - id: req_mobile_friendly
     name: Mobile-Friendly Web Access
     text: >
       The system shall be accessible via web browser on mobile devices.
-      The UI shall be responsive and optimized for portrait-mode phone screens.
+      The UI shall be responsive and optimized for portrait_mode phone screens.
     kind: interface
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc]
     satisfiedByRefs: []
 
   # --- Performance Requirement (must refine a functional req) ---
-  - id: req-response-time
+  - id: req_response_time
     name: AI Response Time
     text: >
       The AI-DM shall generate narrative responses within 5 seconds of
       player input under normal operating conditions.
     kind: performance
-    ownerRef: pkg-requirements
-    traceRefs: [src-design-doc]
-    refineRefs: [req-ai-dm]
+    ownerRef: pkg_requirements
+    traceRefs: [src_design_doc]
+    refineRefs: [req_ai_dm]
     satisfiedByRefs: []

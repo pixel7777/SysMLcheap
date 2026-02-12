@@ -3,30 +3,30 @@
 # ============================================================================
 
 packages:
-  - id: pkg-root
+  - id: pkg_root
     name: Croatian Language Learning App
     ownerRef: null
 
-  - id: pkg-requirements
+  - id: pkg_requirements
     name: Requirements
-    ownerRef: pkg-root
+    ownerRef: pkg_root
 
-  - id: pkg-behavioral
+  - id: pkg_behavioral
     name: Behavioral Architecture
-    ownerRef: pkg-root
+    ownerRef: pkg_root
 
-  - id: pkg-logical
+  - id: pkg_logical
     name: Logical Architecture
-    ownerRef: pkg-root
+    ownerRef: pkg_root
 
-  - id: pkg-physical
+  - id: pkg_physical
     name: Physical Architecture
-    ownerRef: pkg-root
+    ownerRef: pkg_root
 
-  - id: pkg-glossary
+  - id: pkg_glossary
     name: Glossary
-    ownerRef: pkg-root
+    ownerRef: pkg_root
 
-  - id: pkg-sources
+  - id: pkg_sources
     name: Source Content
-    ownerRef: pkg-root
+    ownerRef: pkg_root
