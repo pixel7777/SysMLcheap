@@ -1,0 +1,39 @@
+@startuml Interface Blocks — Logical
+skinparam class {
+  BackgroundColor<<logical>> LightBlue
+  BackgroundColor<<physical>> Plum
+}
+
+class "User Interaction" <<logical>> as ib-log-user-interaction {
+  inout player input : Player Input
+  out narrative output : Narrative Output
+  out multiple choice options : Multiple Choice Options
+}
+
+class "AI Interface" <<logical>> as ib-log-ai-interface {
+  out prompt : AI Prompt
+  inout response : AI Response
+}
+
+class "Language Services" <<logical>> as ib-log-language-services {
+  inout vocabulary query : Vocabulary Query
+  out assessment result : Assessment Result
+}
+
+class "Player Input" <<signal>> as sig-player-input
+class "Narrative Output" <<signal>> as sig-narrative-output
+class "Multiple Choice Options" <<signal>> as sig-mc-options
+class "AI Prompt" <<signal>> as sig-ai-prompt
+class "AI Response" <<signal>> as sig-ai-response
+class "Vocabulary Query" <<signal>> as sig-vocab-query
+class "Assessment Result" <<signal>> as sig-assessment-result
+
+ib-log-user-interaction ..> sig-player-input : <<conveys>>
+ib-log-user-interaction ..> sig-narrative-output : <<conveys>>
+ib-log-user-interaction ..> sig-mc-options : <<conveys>>
+ib-log-ai-interface ..> sig-ai-prompt : <<conveys>>
+ib-log-ai-interface ..> sig-ai-response : <<conveys>>
+ib-log-language-services ..> sig-vocab-query : <<conveys>>
+ib-log-language-services ..> sig-assessment-result : <<conveys>>
+
+@enduml

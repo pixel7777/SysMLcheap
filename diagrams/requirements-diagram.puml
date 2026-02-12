@@ -1,0 +1,48 @@
+@startuml Requirements Diagram
+skinparam class {
+  BackgroundColor<<functional>> LightBlue
+  BackgroundColor<<performance>> Wheat
+  BackgroundColor<<interface>> LightGreen
+  BackgroundColor<<constraint>> LightCoral
+  BackgroundColor<<business>> Lavender
+}
+
+class "Vocabulary Mastery Tracking" <<functional>> as req-vocab-tracking {
+  The system shall track vocabulary mastery across four levels: seen, recognized, ...
+}
+
+class "SRS-Based Review Scheduling" <<functional>> as req-srs-scheduling {
+  The system shall schedule vocabulary review using a spaced repetition algorithm....
+}
+
+class "Progressive Grammar Introduction" <<functional>> as req-grammar-progressive {
+  The system shall introduce Croatian grammar rules progressively, ordered by peda...
+}
+
+class "AI Dungeon Master Content Generation" <<functional>> as req-ai-dm {
+  The system shall use an AI language model to generate interactive narrative cont...
+}
+
+class "Croatian Immersion During Gameplay" <<functional>> as req-immersion {
+  During gameplay, all narrative content, multiple choice options, and NPC dialogu...
+}
+
+class "Session Zero in English" <<functional>> as req-session-zero {
+  The system shall conduct Session 0 (genre selection, tone, lines & veils, charac...
+}
+
+class "No User Data Loss" <<constraint>> as req-no-data-loss {
+  The system shall never lose user data. Database storage shall be separate from a...
+}
+
+class "Mobile-Friendly Web Access" <<interface>> as req-mobile-friendly {
+  The system shall be accessible via web browser on mobile devices. The UI shall b...
+}
+
+class "AI Response Time" <<performance>> as req-response-time {
+  The AI-DM shall generate narrative responses within 5 seconds of player input un...
+}
+
+req-response-time ..> req-ai-dm : <<refine>>
+
+@enduml

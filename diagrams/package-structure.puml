@@ -1,0 +1,12 @@
+@startuml Package Structure
+
+package "Croatian Language Learning App" as pkg-root {
+  package "Requirements" as pkg-requirements
+  package "Behavioral Architecture" as pkg-behavioral
+  package "Logical Architecture" as pkg-logical
+  package "Physical Architecture" as pkg-physical
+  package "Glossary" as pkg-glossary
+  package "Source Content" as pkg-sources
+}
+
+@enduml

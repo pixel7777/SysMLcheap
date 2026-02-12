@@ -1,0 +1,19 @@
+# ============================================================================
+# SOURCE CONTENT — External references for requirement pedigree
+# ============================================================================
+
+sources:
+  - id: src-design-doc
+    name: Croatian App Design Document
+    fileOrUrl: /home/ubuntu/.openclaw/workspace/croatian-app-design.md
+    ownerRef: pkg-sources
+
+  - id: src-srs-research
+    name: SRS Algorithm Research
+    fileOrUrl: https://en.wikipedia.org/wiki/Spaced_repetition
+    ownerRef: pkg-sources
+
+  - id: src-lasers-feelings
+    name: Lasers & Feelings RPG System
+    fileOrUrl: http://onesevendesign.com/lasers_and_feelings_rpg.pdf
+    ownerRef: pkg-sources

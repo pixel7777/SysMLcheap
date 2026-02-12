@@ -1,0 +1,243 @@
+# ============================================================================
+# LOGICAL ARCHITECTURE — System Context & Logical Blocks (sample)
+# ============================================================================
+
+blocks:
+  # --- Logical System Context ---
+  - id: blk-log-context
+    name: Croatian Learning App Context
+    documentation: >
+      Top-level logical system context. Contains the learning app system
+      and its external actors as part properties.
+    stereotype: context
+    ownerRef: pkg-logical
+    parts:
+      - id: pp-log-system
+        name: learning app
+        typeRef: blk-log-system
+        realizationRefs: [uc-play-session, uc-review-vocab, uc-session-zero, uc-manage-codex, uc-view-progress]
+      - id: pp-log-learner
+        name: learner
+        typeRef: blk-log-learner-ext
+        realizationRefs: [act-learner]
+      - id: pp-log-ai
+        name: ai provider
+        typeRef: blk-log-ai-ext
+        realizationRefs: [act-ai-provider]
+    ports: []  # Context blocks may not own ports
+
+  # --- External Blocks ---
+  - id: blk-log-learner-ext
+    name: Learner
+    documentation: >
+      External block representing the human learner interacting with
+      the system via a web browser.
+    stereotype: external
+    ownerRef: pkg-logical
+    ports:
+      - id: port-learner-ui
+        name: ui
+        typeRef: ib-log-user-interaction
+        conjugated: false
+
+  - id: blk-log-ai-ext
+    name: AI Provider
+    documentation: >
+      External block representing the AI language model service.
+      Receives prompts and returns generated content.
+    stereotype: external
+    ownerRef: pkg-logical
+    ports:
+      - id: port-ai-api
+        name: api
+        typeRef: ib-log-ai-interface
+        conjugated: true
+
+  # --- Logical System Block ---
+  - id: blk-log-system
+    name: Learning App
+    documentation: >
+      Top-level logical system block. Decomposes into the major
+      functional subsystems of the Croatian learning application.
+    stereotype: logical
+    ownerRef: pkg-logical
+    parts:
+      - id: pp-game-engine
+        name: game engine
+        typeRef: blk-log-game-engine
+      - id: pp-language-engine
+        name: language engine
+        typeRef: blk-log-language-engine
+      - id: pp-ai-orchestrator
+        name: ai orchestrator
+        typeRef: blk-log-ai-orchestrator
+      - id: pp-user-manager
+        name: user manager
+        typeRef: blk-log-user-manager
+    ports:
+      - id: port-sys-ui
+        name: ui
+        typeRef: ib-log-user-interaction
+        conjugated: true
+      - id: port-sys-ai
+        name: ai
+        typeRef: ib-log-ai-interface
+        conjugated: false
+
+  # --- Logical Subsystem Blocks ---
+  - id: blk-log-game-engine
+    name: Game Engine
+    documentation: >
+      Manages TTRPG gameplay mechanics: Lasers & Feelings dice resolution,
+      character sheets, story state, session management, and the
+      narrative interaction loop.
+    stereotype: logical
+    ownerRef: pkg-logical
+    ports:
+      - id: port-ge-lang
+        name: language services
+        typeRef: ib-log-language-services
+        conjugated: false
+      - id: port-ge-ai
+        name: ai services
+        typeRef: ib-log-ai-interface
+        conjugated: false
+
+  - id: blk-log-language-engine
+    name: Language Engine
+    documentation: >
+      Core language learning subsystem. Manages vocabulary bins (mastery
+      tracking), grammar bin (progressive introduction), SRS scheduling,
+      and learner proficiency assessment.
+    stereotype: logical
+    ownerRef: pkg-logical
+    ports:
+      - id: port-le-svc
+        name: language services
+        typeRef: ib-log-language-services
+        conjugated: true
+
+  - id: blk-log-ai-orchestrator
+    name: AI Orchestrator
+    documentation: >
+      Manages communication with the external AI provider. Handles prompt
+      construction (NovelCrafter-style context assembly), token budget
+      management, and response parsing.
+    stereotype: logical
+    ownerRef: pkg-logical
+    ports:
+      - id: port-ao-ai
+        name: ai api
+        typeRef: ib-log-ai-interface
+        conjugated: false
+
+  - id: blk-log-user-manager
+    name: User Manager
+    documentation: >
+      Manages user accounts, authentication, preferences, and
+      cross-story persistent data (language stats, story library).
+    stereotype: logical
+    ownerRef: pkg-logical
+
+# ============================================================================
+# INTERFACE BLOCKS & SIGNALS — Logical interfaces
+# ============================================================================
+
+interfaceBlocks:
+  - id: ib-log-user-interaction
+    name: User Interaction
+    stereotype: logical
+    ownerRef: pkg-logical
+    flowProperties:
+      - id: fp-ui-player-input
+        name: player input
+        direction: inout
+        typeRef: sig-player-input
+      - id: fp-ui-narrative
+        name: narrative output
+        direction: out
+        typeRef: sig-narrative-output
+      - id: fp-ui-mc-options
+        name: multiple choice options
+        direction: out
+        typeRef: sig-mc-options
+
+  - id: ib-log-ai-interface
+    name: AI Interface
+    stereotype: logical
+    ownerRef: pkg-logical
+    flowProperties:
+      - id: fp-ai-prompt
+        name: prompt
+        direction: out
+        typeRef: sig-ai-prompt
+      - id: fp-ai-response
+        name: response
+        direction: inout
+        typeRef: sig-ai-response
+
+  - id: ib-log-language-services
+    name: Language Services
+    stereotype: logical
+    ownerRef: pkg-logical
+    flowProperties:
+      - id: fp-ls-vocab-query
+        name: vocabulary query
+        direction: inout
+        typeRef: sig-vocab-query
+      - id: fp-ls-assessment
+        name: assessment result
+        direction: out
+        typeRef: sig-assessment-result
+
+signals:
+  - id: sig-player-input
+    name: Player Input
+    documentation: >
+      Input from the learner — either a multiple choice selection
+      or free-text Croatian input. Includes metadata about input type.
+    ownerRef: pkg-logical
+
+  - id: sig-narrative-output
+    name: Narrative Output
+    documentation: >
+      AI-generated narrative content in Croatian, ready for display
+      to the learner. May include scene descriptions, NPC dialogue,
+      and action results.
+    ownerRef: pkg-logical
+
+  - id: sig-mc-options
+    name: Multiple Choice Options
+    documentation: >
+      A set of Croatian-language options for the learner to choose from.
+      Always includes a free-text alternative option.
+    ownerRef: pkg-logical
+
+  - id: sig-ai-prompt
+    name: AI Prompt
+    documentation: >
+      Assembled prompt for the AI provider, including system instructions,
+      context window (NovelCrafter-style), conversation history,
+      and current learner proficiency data.
+    ownerRef: pkg-logical
+
+  - id: sig-ai-response
+    name: AI Response
+    documentation: >
+      Raw response from the AI provider. Parsed into structured
+      narrative content, vocabulary annotations, and assessment data.
+    ownerRef: pkg-logical
+
+  - id: sig-vocab-query
+    name: Vocabulary Query
+    documentation: >
+      Request to the language engine for vocabulary data — current mastery
+      levels, SRS-due items, or assessment of a specific word usage.
+    ownerRef: pkg-logical
+
+  - id: sig-assessment-result
+    name: Assessment Result
+    documentation: >
+      Result of evaluating a learner's response. Includes updated mastery
+      levels, grammar exposure updates, and game point awards.
+    ownerRef: pkg-logical

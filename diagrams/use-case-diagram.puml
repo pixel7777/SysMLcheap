@@ -1,0 +1,29 @@
+@startuml Use Case Diagram
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Learner" as act-learner
+actor "AI Provider" as act-ai-provider
+
+rectangle "Croatian Learning App" {
+  usecase "Configure New Story (Session 0)" as uc-session-zero
+  usecase "Play Story Session" as uc-play-session
+  usecase "Review Vocabulary" as uc-review-vocab
+  usecase "Manage Wiki/Codex" as uc-manage-codex
+  usecase "View Learning Progress" as uc-view-progress
+  usecase "Roll Dice (L&F Mechanic)" as uc-roll-dice
+  usecase "Assess Learner Response" as uc-assess-response
+}
+
+act-learner --> uc-play-session
+act-learner --> uc-review-vocab
+act-learner --> uc-session-zero
+act-learner --> uc-manage-codex
+act-learner --> uc-view-progress
+act-ai-provider --> uc-play-session
+act-ai-provider --> uc-review-vocab
+uc-play-session ..> uc-roll-dice : <<include>>
+uc-play-session ..> uc-assess-response : <<include>>
+
+@enduml
