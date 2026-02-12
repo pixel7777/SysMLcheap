@@ -1,0 +1,641 @@
+# ============================================================================
+# METAMODEL SCHEMA v0.1
+# Lightweight MBSE Metamodel for YAML+PlantUML Toolchain
+# Reverse-engineered from SAIC DE Validation Rules v27 & Style Guide v27
+# ============================================================================
+#
+# CONVENTIONS:
+#   - Every element has: id (unique), name, documentation, ownerRef (parent id)
+#   - References between elements use target element ids (e.g., typeRef: "blk-auth-service")
+#   - Stereotypes are explicit fields (stereotype: logical | physical | context | external | software | analysis)
+#   - "Ref" suffix = reference to another element's id
+#   - "Refs" suffix = list of references
+#
+# EXCLUDED (not needed for our project scope):
+#   - Model Federation rules (multi-model composition)
+#   - Profile Development rules (creating new stereotypes/customizations)
+#   - Validation Rules Development rules (meta-rules for the validator itself)
+#   - Deprecated rules
+#   - Parametric/constraint blocks (MoE analysis — may add later)
+#
+# ============================================================================
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PACKAGES — Organizational containers
+# ──────────────────────────────────────────────────────────────────────────────
+Package:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }           # PACKAGENAME
+    documentation: { type: string }
+    ownerRef:      { type: ref, target: Package }             # Parent package (null = root)
+  notes: >
+    Packages organize model elements into a tree. Our project uses a standard
+    package structure: Requirements, Behavioral, Logical, Physical.
+
+# ──────────────────────────────────────────────────────────────────────────────
+# REQUIREMENTS — What the system must do/be
+# ──────────────────────────────────────────────────────────────────────────────
+Requirement:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }                            # REQNAME (recommended short summary)
+    text:          { type: string, required: true }            # REQTEXT
+    kind:          { type: enum, values: [functional, performance, interface, constraint, business] }
+    ownerRef:      { type: ref, target: [Package, Requirement] }
+    traceRefs:     { type: refs, target: [SourceContent] }     # REQTRACE (outgoing trace to source)
+    deriveRefs:    { type: refs, target: [Requirement] }       # deriveReqt relationships
+    refineRefs:    { type: refs, target: [Requirement] }       # refine relationships
+    satisfiedByRefs: { type: refs, target: [Block, Operation, Activity, UseCase] }  # REQUIREMENTSATISFY
+    verifiedByRefs:  { type: refs, target: [TestCase] }        # REQUIREMENTVERIFY
+  validations:
+    - rule: REQTEXT
+      check: "text is not empty"
+    - rule: REQNAME
+      check: "name is recommended (info-level)"
+      severity: info
+    - rule: REQTRACE
+      check: "has at least one traceRef, deriveRef, or refineRef"
+    - rule: PERFORMANCEFUNCTIONREFINE
+      check: "if kind=performance, must have at least one refineRef to a functional requirement"
+
+SourceContent:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # ARTIFACTNAME
+    fileOrUrl:     { type: string, required: true }            # SRCCNT (file name or hyperlink)
+    ownerRef:      { type: ref, target: Package }
+  notes: >
+    Represents external source documents (standards, stakeholder docs, etc.)
+    that requirements trace to for pedigree.
+
+# ──────────────────────────────────────────────────────────────────────────────
+# USE CASES & ACTORS — Behavioral Architecture
+# ──────────────────────────────────────────────────────────────────────────────
+Actor:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # ACTORNAME
+    documentation: { type: string, required: true }            # ACTORDOCUMENTATION
+    ownerRef:      { type: ref, target: Package }
+    useCaseRefs:   { type: refs, target: UseCase }             # ACTORUSECASE (associations)
+    generalizationRefs: { type: refs, target: Actor }          # Specialization hierarchy
+    realizedByRefs: { type: refs, target: PartProperty }       # ACTREALIZATION
+  validations:
+    - rule: ACTORNAME
+      check: "name is not empty"
+    - rule: ACTORDOCUMENTATION
+      check: "documentation is not empty"
+    - rule: ACTORUSECASE
+      check: "has at least one useCaseRef OR has generalizationRefs"
+    - rule: ACTORASSOCIATION
+      check: "actors may not be associated with other actors (no actor-to-actor associations)"
+    - rule: ACTREALIZATION
+      check: "realized by at least one part property in a system context block"
+
+UseCase:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # USECASENAME
+    documentation: { type: string, required: true }            # UCDOCUMENTATION
+    ownerRef:      { type: ref, target: Package }
+    actorRefs:     { type: refs, target: Actor }               # UCACTOR
+    extendRefs:    { type: refs, target: UseCase }             # Extend relationships
+    includeRefs:   { type: refs, target: UseCase }             # Include relationships
+    traceRefs:     { type: refs, target: [SourceContent, Requirement] }  # UCTRACE
+    extensionPoints: { type: list, items: string }             # EXTENSIONPOINTUSE
+  validations:
+    - rule: USECASENAME
+      check: "name is not empty"
+    - rule: UCDOCUMENTATION
+      check: "documentation is not empty"
+    - rule: UCACTOR
+      check: "has at least one actorRef (unless connected via extend/include/generalization)"
+    - rule: UCASSOCIATION
+      check: "use cases may not be directly associated with other use cases (use extend/include)"
+    - rule: UCTRACE
+      check: "has at least one outgoing trace, extend, refine, or incoming include"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# BLOCKS — Structural elements (Logical & Physical Architecture)
+# ──────────────────────────────────────────────────────────────────────────────
+Block:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # BLOCKNAME
+    documentation: { type: string }                            # CONBLOCKDOCUMENTATION (required if types context parts)
+    stereotype:    { type: enum, values: [logical, physical, context, external, software, analysis] }
+    atomic:        { type: boolean, default: false }           # Leaf block — no further decomposition
+    ownerRef:      { type: ref, target: Package }
+    generalizationRefs: { type: refs, target: Block }
+    realizationRefs:    { type: refs, target: Block }          # Physical realizes Logical
+    parts:         { type: list, items: PartProperty }         # Owned part properties
+    ports:         { type: list, items: ProxyPort }            # Owned proxy ports
+    operations:    { type: list, items: Operation }            # Owned operations
+    valueProperties: { type: list, items: ValueProperty }      # Owned value properties
+    stateMachineRef: { type: ref, target: StateMachine }       # Classifier behavior
+    diagrams:      { type: list, items: string }               # Owned diagram ids
+  validations:
+    - rule: BLOCKNAME
+      check: "name is not empty"
+    - rule: LOGICALPHYSICAL
+      check: "cannot have both logical and physical stereotypes"
+    - rule: LOGICALARCH
+      check: "if stereotype=logical, all parts must be typed by logical blocks"
+    - rule: PHYSICALARCH
+      check: "if stereotype=physical, all parts must be typed by physical blocks"
+    - rule: LOGICALARCHOWNER
+      check: "if any part is typed by a logical block, this block must be logical"
+    - rule: PHYSARCHOWNER
+      check: "if any part is typed by a physical block, this block must be physical"
+    - rule: REALIZEDIRECTION
+      check: "realizations: physical is source, logical is target"
+    - rule: BLOCKUSECASE
+      check: "blocks may not be the subject of use cases"
+    - rule: STMCLASSIFIERBEHAVIOR
+      check: "if block owns state machines, one must be its classifier behavior"
+    - rule: LOGTERMPARTS
+      check: "if logical and atomic=true, may not own parts"
+    - rule: PHYSTERMPARTS
+      check: "if physical and atomic=true, may not own parts"
+    - rule: IBDNEEDED
+      check: "blocks with parts that have ports need an IBD"
+      severity: info
+    - rule: SOFTWAREFUNCTION
+      check: "if stereotype=software, must own at least one operation or software-typed part"
+      severity: info
+
+PartProperty:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    typeRef:       { type: ref, target: Block, required: true }  # PARTTYPE
+    ownerRef:      { type: ref, target: Block }
+    realizationRefs: { type: refs, target: [PartProperty, Actor, UseCase] }  # CONTEXTREALIZATION
+  validations:
+    - rule: PARTTYPE
+      check: "must be typed"
+    - rule: PARTACTOR
+      check: "may not be typed by actors"
+    - rule: PARTIB
+      check: "may not be typed by interface blocks"
+    - rule: PARTSIGNAL
+      check: "may not be typed by signals"
+    - rule: CONTEXTTYPE
+      check: "may not be typed by system context blocks"
+    - rule: CONTEXTREALIZATION
+      check: "if owned by logical context, must realize use case elements; if physical context, must realize logical parts"
+
+ValueProperty:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # VALUENAME
+    typeRef:       { type: ref, target: ValueType, required: true }  # VALUETYPE
+    ownerRef:      { type: ref, target: Block }
+
+ValueType:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }
+    unit:          { type: string }                            # VALUETYPEUNIT
+    ownerRef:      { type: ref, target: Package }
+  validations:
+    - rule: VALUETYPEUNIT
+      check: "must have a unit assigned"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SYSTEM CONTEXT — Top-level structural framing
+# ──────────────────────────────────────────────────────────────────────────────
+# System contexts are Blocks with stereotype: context.
+# Additional rules:
+#   CONTEXTPARTS:  Must own at least one part property
+#   CONTEXTPORTS:  May NOT own ports (highest-level context)
+#   SYSTEMCONTEXT: A project should have at least one context block
+#   EXTERNALPARTTYPE: Parts typed by external blocks must be owned by context/external blocks
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INTERFACES — Ports, Interface Blocks, Signals, Flows
+# ──────────────────────────────────────────────────────────────────────────────
+InterfaceBlock:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }
+    stereotype:    { type: enum, values: [logical, physical] }
+    ownerRef:      { type: ref, target: Package }
+    flowProperties: { type: list, items: FlowProperty }        # INTBLOCKFLOW (must own ≥1)
+    ports:         { type: list, items: ProxyPort }             # Nested ports
+  validations:
+    - rule: INTBLOCKFLOW
+      check: "must own at least one flow property or port"
+    - rule: IBNOTSPECBLOCK
+      check: "may not specialize non-interface blocks"
+    - rule: BLOCKNOTSPECIB
+      check: "non-interface blocks may not specialize interface blocks"
+
+FlowProperty:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    direction:     { type: enum, values: [out, inout], required: true }  # FLOWDIRECTION
+    typeRef:       { type: ref, target: Signal, required: true }         # FLOWTYPE
+    ownerRef:      { type: ref, target: InterfaceBlock }                 # FLOWOWNER
+  validations:
+    - rule: FLOWDIRECTION
+      check: "must be 'out' or 'inout'"
+    - rule: FLOWTYPE
+      check: "must be typed by a signal"
+    - rule: FLOWOWNER
+      check: "must be owned by an interface block"
+
+ProxyPort:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    typeRef:       { type: ref, target: InterfaceBlock, required: true }  # PROXYPORTTYPE
+    conjugated:    { type: boolean, default: false }
+    ownerRef:      { type: ref, target: Block }
+  validations:
+    - rule: PROXYPORT
+      check: "all ports must be proxy ports (enforced by schema)"
+    - rule: PROXYPORTTYPE
+      check: "must be typed by an interface block"
+    - rule: LOGICALPORT
+      check: "if owned by logical block, must be typed by logical interface block"
+    - rule: PHYSICALPORT
+      check: "if owned by physical block, must be typed by physical interface block"
+
+Signal:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # SIGNALNAME
+    documentation: { type: string, required: true }            # SIGNALDOCUMENTATION
+    stereotype:    { type: enum, values: [logical, physical] }
+    ownerRef:      { type: ref, target: Package }
+    generalizationRefs: { type: refs, target: Signal }         # Signal taxonomy
+    properties:    { type: list, items: { name: string, typeRef: ref } }  # Signal attributes
+  validations:
+    - rule: SIGNALNAME
+      check: "must be named"
+    - rule: SIGNALDOCUMENTATION
+      check: "must have documentation"
+    - rule: FLOWLEVEL
+      check: "should not type flow properties in both logical and physical architectures"
+    - rule: SIGNALGEN
+      check: "general classifiers must be at same level of abstraction"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CONNECTORS & ITEM FLOWS — Wiring between ports
+# ──────────────────────────────────────────────────────────────────────────────
+Connector:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    sourcePortRef: { type: ref, target: ProxyPort, required: true }  # CONNECTOREND
+    targetPortRef: { type: ref, target: ProxyPort, required: true }  # CONNECTOREND
+    ownerRef:      { type: ref, target: Block }                      # IBD context
+    itemFlowRefs:  { type: refs, target: ItemFlow }
+  validations:
+    - rule: CONNECTOREND
+      check: "both ends must be proxy ports"
+    - rule: LOGICALCONNFLOWS
+      check: "connectors in logical architecture should have at least one flow"
+      severity: info
+
+ItemFlow:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    conveyedSignalRefs: { type: refs, target: Signal, required: true }  # ITEMFLOWCONVEYED, CONVEYTYPE
+    connectorRef:  { type: ref, target: Connector }                     # FLOWCONNECTOR
+    ownerRef:      { type: ref, target: Block }
+  validations:
+    - rule: ITEMFLOWCONVEYED
+      check: "must convey one or more signals"
+    - rule: CONVEYTYPE
+      check: "may only convey signals"
+    - rule: FLOWCONNECTOR
+      check: "must be realized by a connector"
+    - rule: FLOWCONNECTORS
+      check: "may only be realized by one connector (use flow set for multiple)"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# OPERATIONS — Behavioral functions owned by blocks
+# ──────────────────────────────────────────────────────────────────────────────
+Operation:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # OPERATIONNAME
+    documentation: { type: string, required: true }            # OPDOCUMENTATION
+    ownerRef:      { type: ref, target: [Block, Activity] }    # OPOWNER
+    parameters:    { type: list, items: Parameter }
+    methodRef:     { type: ref, target: Activity }             # Decomposition into activity
+  validations:
+    - rule: OPERATIONNAME
+      check: "must be named"
+    - rule: OPDOCUMENTATION
+      check: "must have documentation"
+    - rule: OPOWNER
+      check: "must be owned by a block (with context/logical/physical) or activity"
+    - rule: PARATYPE
+      check: "all parameters must be typed"
+
+Parameter:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    direction:     { type: enum, values: [in, out, inout, return] }
+    typeRef:       { type: ref, target: [Signal, ValueType], required: true }  # PARATYPE, NOIBPAR
+  validations:
+    - rule: PARATYPE
+      check: "must be typed"
+    - rule: NOIBPAR
+      check: "may not be typed by interface blocks"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ACTIVITIES — Behavioral decomposition (activity diagrams)
+# ──────────────────────────────────────────────────────────────────────────────
+Activity:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # ACTIVITYNAME
+    documentation: { type: string }                            # ACTIVITYDOCUMENTATION
+    isLeaf:        { type: boolean, default: false }           # ACTIVITYLEAF
+    ownerRef:      { type: ref, target: [Package, Operation] }
+    nodes:         { type: list, items: ActivityNode }         # All nodes in the activity
+    edges:         { type: list, items: ActivityEdge }         # All flows in the activity
+    parameterNodes: { type: list, items: ActivityParameterNode }
+    diagrams:      { type: list, items: string }
+  validations:
+    - rule: ACTIVITYNAME
+      check: "must be named"
+    - rule: ACTIVITYDOCUMENTATION
+      check: "must have documentation (exempt if method for operation or classifier behavior for use case)"
+    - rule: ACTIVITYOWNS
+      check: "must own at least one diagram or operation (or set isLeaf=true)"
+    - rule: ACTIVITYINITIAL
+      check: "if has diagrams, must own one initial node with one outgoing control flow"
+    - rule: ACTIVITYFINAL
+      check: "if has diagrams, must own one final node"
+    - rule: ACTIVITYLEAF
+      check: "if isLeaf=true, may not own diagrams or operations"
+    - rule: ACTIVITYLEVEL
+      check: "may not call operations owned by elements with both logical and physical stereotypes"
+
+ActivityNode:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    kind:          { type: enum, required: true, values: [
+      initial, activityFinal, flowFinal,
+      fork, join, decision, merge,
+      callOperation, callBehavior, opaqueAction,
+      acceptEvent, sendSignal,
+      createObject, destroyObject,
+      centralBuffer, dataStore
+    ]}
+    # For callOperation nodes:
+    operationRef:  { type: ref, target: Operation }            # CALLOPERATIONOPERATION
+    # For acceptEvent/sendSignal nodes:
+    signalRef:     { type: ref, target: Signal }
+    portRefs:      { type: refs, target: ProxyPort }
+    # For decision nodes:
+    decisionName:  { type: string }                            # DECISIONNODENAME
+    # For opaqueAction nodes:
+    body:          { type: string }                            # OPAQUEACTIONBODY
+    # For buffer/dataStore nodes:
+    typeRef:       { type: ref, target: [Signal, ValueType] }  # DATASTORETYPE
+    # Pins:
+    inputPins:     { type: list, items: Pin }
+    outputPins:    { type: list, items: Pin }
+  validations:
+    - rule: CALLOPERATIONOPERATION
+      check: "callOperation nodes must specify operationRef"
+    - rule: DECISIONNODENAME
+      check: "decision nodes must have a name"
+    - rule: OPAQUEACTIONBODY
+      check: "opaque action body may not be blank"
+    - rule: DATASTORETYPE
+      check: "buffers/data stores must be typed by signals or value types"
+    - rule: SENDSIGNALPIN
+      check: "sendSignal nodes must have at least one input pin"
+    - rule: ACCEPTEVENTOUTPUT
+      check: "acceptEvent nodes (signal-triggered) must have an output pin"
+
+Pin:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    direction:     { type: enum, values: [in, out] }
+    typeRef:       { type: ref, target: [Signal, ValueType], required: true }  # PINTYPE
+
+ActivityEdge:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    kind:          { type: enum, values: [controlFlow, objectFlow], required: true }
+    sourceRef:     { type: ref, target: [ActivityNode, Pin], required: true }
+    targetRef:     { type: ref, target: [ActivityNode, Pin], required: true }
+    guard:         { type: string }                            # ACTIVITYEDGEGUARD (required from decisions)
+    itemFlowRef:   { type: ref, target: ItemFlow }             # Realization for object flows
+  validations:
+    - rule: ACTIVITYEDGEGUARD
+      check: "edges exiting decision nodes must have guards"
+    - rule: ACTIVITYEDGEMISMATCH
+      check: "edges into/out of fork/decision must be same type"
+    - rule: ACTIVITYFINALINCOMING
+      check: "activity final: one incoming control flow, no object flows"
+    - rule: OBJECTFLOWENDS
+      check: "object flows must connect pins (not directly to send/accept events)"
+    - rule: GUARDSOURCE
+      check: "edges with guards must exit decision nodes"
+
+ActivityParameterNode:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    typeRef:       { type: ref, target: [Signal, ValueType], required: true }  # ACTPARTYPE
+    direction:     { type: enum, values: [in, out] }
+  validations:
+    - rule: ACTPARTYPE
+      check: "must be typed by signals or value types"
+    - rule: ACTIVITYPARAMETERFLOW
+      check: "must have incoming or outgoing object flows (exempt if parent isLeaf)"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STATE MACHINES — Behavioral specification for blocks
+# ──────────────────────────────────────────────────────────────────────────────
+StateMachine:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # STMACHINENAME
+    ownerRef:      { type: ref, target: [Block, UseCase] }     # STATEOWNER
+    states:        { type: list, items: State }
+    transitions:   { type: list, items: Transition }
+    regions:       { type: list, items: Region }               # For orthogonal states
+    entryPoints:   { type: list, items: string }
+    exitPoints:    { type: list, items: string }
+  validations:
+    - rule: STMACHINENAME
+      check: "must be named"
+    - rule: STATEOWNER
+      check: "must be owned by a block or use case"
+    - rule: STATEMACHINEUSE
+      check: "must be a block's classifier behavior or a submachine within one"
+
+State:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # STATENAME
+    documentation: { type: string, required: true }            # STATEDOCUMENTATION
+    kind:          { type: enum, values: [simple, composite, orthogonal, submachine, final] }
+    entryActivityRef: { type: ref, target: Activity }
+    doActivityRef:    { type: ref, target: Activity }
+    exitActivityRef:  { type: ref, target: Activity }
+    submachineRef:    { type: ref, target: StateMachine }      # For submachine states
+  validations:
+    - rule: STATENAME
+      check: "must be named"
+    - rule: STATEDOCUMENTATION
+      check: "must have documentation"
+    - rule: STATEREACHABILITY
+      check: "must have at least one incoming transition (composite/orthogonal exempt)"
+
+Transition:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    sourceRef:     { type: ref, target: State, required: true }
+    targetRef:     { type: ref, target: State, required: true }
+    trigger:       { type: object }     # See Trigger below
+    guard:         { type: string }     # TRANSITIONCHOICE (required from choice pseudostates)
+    effectRef:     { type: ref, target: Activity }
+  validations:
+    - rule: TRANSITIONTRIGGER
+      check: "must have a trigger (exempt if exiting connection points or pseudostates)"
+    - rule: TRANSITIONCHOICE
+      check: "transitions exiting a choice must have guards"
+
+Trigger:
+  properties:
+    kind:          { type: enum, values: [signal, time, change, anyReceive] }
+    signalRef:     { type: ref, target: Signal }               # For signal triggers
+    portRefs:      { type: refs, target: ProxyPort }           # ANYRECEIVETRIGGERPORT
+    whenExpression: { type: string }                           # TIMEEVENTWHEN, CHANGEEVENTEXPRESSION
+    itemFlowRefs:  { type: refs, target: ItemFlow }            # TRANSITIONTRIGGERFLOW
+  validations:
+    - rule: TIMEEVENTWHEN
+      check: "time triggers must have whenExpression"
+    - rule: CHANGEEVENTEXPRESSION
+      check: "change triggers must have whenExpression"
+    - rule: ANYRECEIVETRIGGERPORT
+      check: "anyReceive triggers must specify at least one port"
+
+Region:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # REGIONNAME
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SEQUENCE DIAGRAMS — Interactions between lifelines
+# ──────────────────────────────────────────────────────────────────────────────
+Interaction:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }
+    ownerRef:      { type: ref, target: Package }
+    lifelines:     { type: list, items: Lifeline }
+    messages:      { type: list, items: Message }
+  validations:
+    - rule: SEQUENCELEVEL
+      check: "may not mix physical and logical lifeline types"
+
+Lifeline:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    typeRef:       { type: ref, target: Block, required: true }  # LIFELINETYPE
+  validations:
+    - rule: LIFELINETYPE
+      check: "must be typed by a block"
+
+Message:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string }
+    kind:          { type: enum, values: [call, signal, reply, create, delete] }
+    sourceLifelineRef: { type: ref, target: Lifeline }
+    targetLifelineRef: { type: ref, target: Lifeline }
+    signatureRef:  { type: ref, target: [Signal, Operation] }  # MESSAGESIGNATURE
+    itemFlowRefs:  { type: refs, target: ItemFlow }            # MESSAGEFLOWS
+  validations:
+    - rule: MESSAGESIGNATURE
+      check: "must have a signature (signal or operation). Reply/Create/Delete exempt."
+    - rule: MESSAGEFLOWS
+      check: "if associated with item flows, they must convey its signature signal"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DIAGRAMS — Visual representations (mapped to PlantUML)
+# ──────────────────────────────────────────────────────────────────────────────
+Diagram:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # DIAGRAMNAME
+    kind:          { type: enum, values: [
+      useCaseDiagram, blockDefinitionDiagram, internalBlockDiagram,
+      activityDiagram, stateMachineDiagram, sequenceDiagram,
+      requirementDiagram, packageDiagram
+    ]}
+    ownerRef:      { type: ref, target: [Package, Block, Activity, StateMachine, Interaction] }
+    elementRefs:   { type: refs }  # Elements shown on this diagram
+  validations:
+    - rule: DIAGRAMNAME
+      check: "must be named"
+    - rule: IBDOWNER
+      check: "IBDs must be owned by a block"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TEST CASES — Verification elements
+# ──────────────────────────────────────────────────────────────────────────────
+TestCase:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }
+    ownerRef:      { type: ref, target: Package }
+    verifiesRefs:  { type: refs, target: Requirement, required: true }  # TESTCASEVERIFY
+  validations:
+    - rule: TESTCASEVERIFY
+      check: "must have at least one verify relationship to a requirement"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# GLOSSARY — Terms and definitions
+# ──────────────────────────────────────────────────────────────────────────────
+Term:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    name:          { type: string, required: true }            # TERMNAME
+    description:   { type: string, required: true }            # TERMDESCRIPTION
+    traceRefs:     { type: refs, target: SourceContent }       # TERMTRACE
+    ownerRef:      { type: ref, target: Package }
+  validations:
+    - rule: TERMNAME
+      check: "must be named"
+    - rule: TERMDESCRIPTION
+      check: "must have a description"
+    - rule: TERMTRACE
+      check: "must trace to a source content or artifact"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FORBIDDEN / ENFORCED PATTERNS
+# ──────────────────────────────────────────────────────────────────────────────
+# These aren't element types — they're schema-level constraints:
+#
+# ALLOCATIONPROHIBIT:    No allocation relationships (use realization or satisfy)
+# CLASSPROHIBIT:         No unstereotyped classes (use blocks, activities, etc.)
+# CALLBEHAVIORPROHIBIT:  No call behavior actions (use call operations)
+# FLOWSPECPROHIBIT:      No flow specifications (use interface blocks)
+# RECEPTIONPROHIBIT:     No receptions (use operations)
+# REFPROPPROHIBIT:       No reference properties
+# SWIMLANEPROHIBIT:      No swimlanes on activity diagrams
+# NOATTACHMENT:          No embedded files (use hyperlinks)
+# REQEXTEND:             Requirements must use extended stereotypes
+#
+# These are enforced by the schema itself — the disallowed element types
+# simply don't exist in our metamodel.
