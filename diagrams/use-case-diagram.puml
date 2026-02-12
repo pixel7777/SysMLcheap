@@ -1,7 +1,6 @@
 @startuml Use Case Diagram
 left to right direction
 skinparam packageStyle rectangle
-skinparam actorStyle awesome
 
 actor "Learner" as act-learner
 actor "AI Provider" as act-ai-provider

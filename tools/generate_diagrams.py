@@ -40,7 +40,6 @@ def generate_use_case_diagram(model, index):
         "@startuml Use Case Diagram",
         "left to right direction",
         'skinparam packageStyle rectangle',
-        'skinparam actorStyle awesome',
         "",
     ]
 
