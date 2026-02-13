@@ -30,18 +30,29 @@
             border-radius: 8px; overflow: hidden; }
     thead { background: #f6f8fa; }
     th { text-align: left; padding: 0.6rem 1rem; font-size: 0.8rem; text-transform: uppercase;
-         color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+         color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap;
+         cursor: pointer; user-select: none; position: relative; }
+    th:hover { color: var(--accent); }
+    th .sort-arrow { font-size: 0.7rem; margin-left: 0.3rem; }
+    th .col-filter { display: block; margin-top: 0.3rem; }
+    th .col-filter input, th .col-filter select {
+      width: 100%; font-size: 0.75rem; padding: 0.2rem 0.4rem;
+      border: 1px solid var(--border); border-radius: 3px;
+      background: #fff; color: var(--text); font-weight: normal; text-transform: none; }
     td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border);
          font-size: 0.85rem; vertical-align: top; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f6f8fa; }
     td.doc { max-width: 420px; color: var(--muted); }
     td.id { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.8rem; color: var(--muted); }
-    .filter-row { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
-    .filter-row label { font-size: 0.8rem; color: var(--muted); }
-    .filter-row select, .filter-row input {
+    .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+    .toolbar label { font-size: 0.8rem; color: var(--muted); }
+    .toolbar input {
       background: var(--surface); color: var(--text); border: 1px solid var(--border);
       padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem; }
+    .toolbar button { background: var(--surface); color: var(--muted); border: 1px solid var(--border);
+      padding: 0.3rem 0.7rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
+    .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
     #loading { color: var(--muted); padding: 2rem; text-align: center; }
     #error { color: var(--red); padding: 2rem; text-align: center; display: none; }
     .count { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.5rem; }
@@ -53,15 +64,10 @@
 
   <nav id="tabs"></nav>
 
-  <div class="filter-row">
-    <label>Status: </label>
-    <select id="statusFilter">
-      <option value="all">All</option>
-      <option value="mvp">MVP</option>
-      <option value="future">Future</option>
-    </select>
+  <div class="toolbar">
     <label>Search: </label>
-    <input id="search" type="text" placeholder="filter by name or id…" />
+    <input id="search" type="text" placeholder="filter across all columns…" />
+    <button id="clearAll" title="Clear all filters and sorting">✕ Clear filters</button>
   </div>
 
   <div class="count" id="count"></div>
@@ -70,13 +76,13 @@
   <div id="tableWrap"></div>
 
   <script>
-    // ── Config: define table types here ──────────────────────────────────
-    // Each entry: { id, label, file, key, columns: [{header, field, class?, render?}] }
+    // ── Config ───────────────────────────────────────────────────────────
     const REPO_OWNER = 'pixel7777';
     const REPO_NAME  = 'SysMLcheap';
     const BRANCH     = 'main';
     const BASE_RAW   = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}`;
 
+    // filterable: 'text' (free input) | 'select' (dropdown of unique values) | false
     const TABLES = [
       {
         id: 'actors',
@@ -84,16 +90,15 @@
         file: 'model/behavioral.yaml',
         key: 'actors',
         columns: [
-          { header: 'Name',     field: 'name' },
-          { header: 'ID',       field: 'id',     cls: 'id' },
-          { header: 'Status',   field: 'status', render: statusBadge },
-          { header: 'Owner',    field: 'ownerRef', cls: 'id' },
-          { header: 'Use Cases',   field: 'useCaseRefs', render: refList },
-          { header: 'Realized By', field: 'realizedByRefs', render: refList },
-          { header: 'Documentation', field: 'documentation', cls: 'doc' },
+          { header: 'Name',       field: 'name',           filterable: 'text',   sortable: true },
+          { header: 'ID',         field: 'id',       cls: 'id', filterable: 'text', sortable: true },
+          { header: 'Status',     field: 'status',         filterable: 'select', sortable: true, render: statusBadge },
+          { header: 'Owner',      field: 'ownerRef', cls: 'id', filterable: 'select', sortable: true },
+          { header: 'Use Cases',  field: 'useCaseRefs',    filterable: false,    sortable: false, render: refList },
+          { header: 'Realized By',field: 'realizedByRefs', filterable: false,    sortable: false, render: refList },
+          { header: 'Documentation', field: 'documentation', cls: 'doc', filterable: 'text', sortable: true },
         ]
       }
-      // Add more table definitions here as needed
     ];
 
     // ── Renderers ────────────────────────────────────────────────────────
@@ -105,10 +110,18 @@
       if (!val || !Array.isArray(val) || val.length === 0) return '<span style="color:var(--muted)">—</span>';
       return val.map(r => `<code>${r}</code>`).join(', ');
     }
+    function sortValue(val) {
+      if (val == null) return '';
+      if (Array.isArray(val)) return val.length.toString();
+      return String(val).toLowerCase();
+    }
 
     // ── State ────────────────────────────────────────────────────────────
     let currentTable = TABLES[0].id;
     let yamlCache = {};
+    let sortCol = null;   // field name
+    let sortAsc = true;
+    let colFilters = {};  // field -> value
 
     // ── Build tabs ───────────────────────────────────────────────────────
     const tabsEl = document.getElementById('tabs');
@@ -116,11 +129,16 @@
       const btn = document.createElement('button');
       btn.textContent = t.label;
       btn.dataset.id = t.id;
-      btn.onclick = () => { currentTable = t.id; renderAll(); };
+      btn.onclick = () => { currentTable = t.id; resetFilters(); renderAll(); };
       tabsEl.appendChild(btn);
     });
 
-    // ── Fetch & render ───────────────────────────────────────────────────
+    function resetFilters() {
+      sortCol = null; sortAsc = true; colFilters = {};
+      document.getElementById('search').value = '';
+    }
+
+    // ── Fetch ────────────────────────────────────────────────────────────
     async function fetchYaml(file) {
       if (yamlCache[file]) return yamlCache[file];
       const url = `${BASE_RAW}/${file}`;
@@ -132,8 +150,8 @@
       return data;
     }
 
+    // ── Render ───────────────────────────────────────────────────────────
     function renderAll() {
-      // highlight active tab
       tabsEl.querySelectorAll('button').forEach(b =>
         b.classList.toggle('active', b.dataset.id === currentTable));
       loadTable(TABLES.find(t => t.id === currentTable));
@@ -148,24 +166,95 @@
 
       try {
         const data = await fetchYaml(tableDef.file);
-        let rows = data[tableDef.key] || [];
+        let rows = [...(data[tableDef.key] || [])];
+        const allRows = rows; // for select options
 
-        // filters
-        const sf = document.getElementById('statusFilter').value;
-        if (sf !== 'all') rows = rows.filter(r => (r.status || '').toLowerCase() === sf);
+        // global search
         const q = document.getElementById('search').value.toLowerCase().trim();
         if (q) rows = rows.filter(r =>
-          (r.name || '').toLowerCase().includes(q) || (r.id || '').toLowerCase().includes(q));
+          tableDef.columns.some(c => String(r[c.field] ?? '').toLowerCase().includes(q)));
+
+        // per-column filters
+        for (const [field, val] of Object.entries(colFilters)) {
+          if (!val) continue;
+          const v = val.toLowerCase();
+          rows = rows.filter(r => String(r[field] ?? '').toLowerCase().includes(v));
+        }
+
+        // sort
+        if (sortCol) {
+          rows.sort((a, b) => {
+            const av = sortValue(a[sortCol]), bv = sortValue(b[sortCol]);
+            const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+            return sortAsc ? cmp : -cmp;
+          });
+        }
 
         loading.style.display = 'none';
         countEl.textContent = `${rows.length} item${rows.length !== 1 ? 's' : ''}`;
 
         const table = document.createElement('table');
-        const thead = document.createElement('thead');
-        const hr = document.createElement('tr');
-        tableDef.columns.forEach(c => { const th = document.createElement('th'); th.textContent = c.header; hr.appendChild(th); });
-        thead.appendChild(hr); table.appendChild(thead);
 
+        // ── thead: header + per-column filters ──
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        tableDef.columns.forEach(c => {
+          const th = document.createElement('th');
+
+          // sort label
+          const label = document.createElement('span');
+          label.textContent = c.header;
+          if (c.sortable) {
+            if (sortCol === c.field) {
+              const arrow = document.createElement('span');
+              arrow.className = 'sort-arrow';
+              arrow.textContent = sortAsc ? ' ▲' : ' ▼';
+              label.appendChild(arrow);
+            }
+            label.style.cursor = 'pointer';
+            label.onclick = () => {
+              if (sortCol === c.field) { sortAsc = !sortAsc; }
+              else { sortCol = c.field; sortAsc = true; }
+              renderAll();
+            };
+          }
+          th.appendChild(label);
+
+          // column filter
+          if (c.filterable) {
+            const filterDiv = document.createElement('div');
+            filterDiv.className = 'col-filter';
+            if (c.filterable === 'select') {
+              const sel = document.createElement('select');
+              const optAll = document.createElement('option');
+              optAll.value = ''; optAll.textContent = 'All';
+              sel.appendChild(optAll);
+              const unique = [...new Set(allRows.map(r => String(r[c.field] ?? '')))].sort();
+              unique.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u; opt.textContent = u;
+                if (colFilters[c.field] === u) opt.selected = true;
+                sel.appendChild(opt);
+              });
+              sel.onchange = () => { colFilters[c.field] = sel.value; renderAll(); };
+              filterDiv.appendChild(sel);
+            } else {
+              const inp = document.createElement('input');
+              inp.type = 'text'; inp.placeholder = '…';
+              inp.value = colFilters[c.field] || '';
+              inp.oninput = () => { colFilters[c.field] = inp.value; renderAll(); };
+              inp.onclick = (e) => e.stopPropagation();
+              filterDiv.appendChild(inp);
+            }
+            th.appendChild(filterDiv);
+          }
+
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // ── tbody ──
         const tbody = document.createElement('tbody');
         rows.forEach(row => {
           const tr = document.createElement('tr');
@@ -188,9 +277,9 @@
       }
     }
 
-    // ── Filter listeners ─────────────────────────────────────────────────
-    document.getElementById('statusFilter').addEventListener('change', () => { yamlCache = {}; renderAll(); });
+    // ── Listeners ────────────────────────────────────────────────────────
     document.getElementById('search').addEventListener('input', () => { yamlCache = {}; renderAll(); });
+    document.getElementById('clearAll').addEventListener('click', () => { yamlCache = {}; resetFilters(); renderAll(); });
 
     // ── Init ─────────────────────────────────────────────────────────────
     renderAll();
