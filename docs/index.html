@@ -122,9 +122,16 @@
       const v = (val || 'unknown').toLowerCase();
       return `<span class="status status-${v}">${v}</span>`;
     }
+    let currentRefMap = {};
+
     function refList(val) {
       if (!val || !Array.isArray(val) || val.length === 0) return '<span style="color:var(--muted)">—</span>';
-      return val.map(r => `<code>${r}</code>`).join(', ');
+      return val.map(r => {
+        const target = currentRefMap[r];
+        return target
+          ? `<code title="${target.name}">${target.name}</code>`
+          : `<code>${r}</code>`;
+      }).join(', ');
     }
     function sortValue(val) {
       if (val == null) return '';
@@ -184,6 +191,16 @@
         const data = await fetchYaml(tableDef.file);
         let rows = [...(data[tableDef.key] || [])];
         const allRows = rows; // for select options
+
+        // Build id -> element map for reference rendering (same YAML file)
+        currentRefMap = {};
+        Object.keys(data).forEach(k => {
+          if (Array.isArray(data[k])) {
+            data[k].forEach(item => {
+              if (item && item.id) currentRefMap[item.id] = item;
+            });
+          }
+        });
 
         // global search
         const q = document.getElementById('search').value.toLowerCase().trim();
