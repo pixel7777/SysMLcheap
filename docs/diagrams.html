@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SysMLcheap — Live Diagrams</title>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    window.__mermaid = mermaid;
+  </script>
+  <style>
+    :root {
+      --bg: #fff; --text: #1f2328; --muted: #555; --border: #d0d7de; --accent: #0969da;
+      --card: #f6f8fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 1.5rem; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+    h1 { margin: 0 0 .25rem 0; font-size: 1.5rem; }
+    .subtitle { color: var(--muted); margin: 0 0 1rem 0; }
+    .toolbar { display: flex; gap: .5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .toolbar a, .toolbar button {
+      border: 1px solid var(--border); background: #fff; color: var(--text);
+      border-radius: 6px; padding: .4rem .8rem; text-decoration: none; cursor: pointer;
+      font-size: .85rem;
+    }
+    .toolbar a:hover, .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .panel {
+      border: 1px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden;
+    }
+    .panel h2 {
+      margin: 0; padding: .6rem .9rem; background: var(--card); border-bottom: 1px solid var(--border);
+      font-size: .95rem;
+    }
+    .panel .meta { color: var(--muted); font-size: .8rem; padding: .5rem .9rem 0 .9rem; }
+    .diagram-wrap { padding: .5rem; overflow-x: auto; }
+    .mermaid { min-width: 700px; }
+    #status { color: var(--muted); margin: .5rem 0 1rem 0; }
+    #error { color: #cf222e; white-space: pre-wrap; display: none; }
+  </style>
+</head>
+<body>
+  <h1>🧙‍♂️ SysMLcheap — Live Diagrams</h1>
+  <p class="subtitle">Rendered from YAML on page load · no generated diagram files to drift</p>
+
+  <div class="toolbar">
+    <a href="./index.html">Open Tables</a>
+    <button id="refreshBtn">Refresh from YAML</button>
+  </div>
+
+  <div id="status">Loading model…</div>
+  <div id="error"></div>
+
+  <div class="grid" id="grid" style="display:none;">
+    <section class="panel">
+      <h2>Use Case Overview</h2>
+      <div class="meta">MVP-focused actor/use-case map (future elements included but visually marked)</div>
+      <div class="diagram-wrap"><pre class="mermaid" id="d-usecase"></pre></div>
+    </section>
+
+    <section class="panel">
+      <h2>Logical Context (MVP Single-User)</h2>
+      <div class="meta">Context block and top-level logical decomposition</div>
+      <div class="diagram-wrap"><pre class="mermaid" id="d-logical"></pre></div>
+    </section>
+
+    <section class="panel">
+      <h2>Requirement ↔ Use Case Trace (Sample)</h2>
+      <div class="meta">Trace refs from behavioral use cases to requirements</div>
+      <div class="diagram-wrap"><pre class="mermaid" id="d-trace"></pre></div>
+    </section>
+  </div>
+
+  <script>
+    const REPO_OWNER = 'pixel7777';
+    const REPO_NAME  = 'SysMLcheap';
+    const BRANCH     = 'main';
+    const RAW = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}`;
+
+    const files = {
+      behavioral: 'model/behavioral.yaml',
+      logical: 'model/logical.yaml',
+      requirements: 'model/requirements.yaml',
+    };
+
+    const statusEl = document.getElementById('status');
+    const errorEl = document.getElementById('error');
+    const gridEl = document.getElementById('grid');
+
+    function safeId(id) {
+      return String(id || '').replace(/[^A-Za-z0-9_]/g, '_');
+    }
+
+    function shortLabel(name, status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'future') return `${name} [future]`;
+      if (s === 'commercial') return `${name} [commercial]`;
+      return name;
+    }
+
+    async function fetchYaml(path) {
+      const r = await fetch(`${RAW}/${path}`);
+      if (!r.ok) throw new Error(`Failed to fetch ${path}: ${r.status}`);
+      const t = await r.text();
+      return jsyaml.load(t);
+    }
+
+    function buildUseCaseDiagram(b) {
+      const actors = b.actors || [];
+      const ucs = b.useCases || [];
+      const ucById = Object.fromEntries(ucs.map(u => [u.id, u]));
+
+      const lines = [
+        'flowchart LR',
+        'classDef future fill:#fff8c5,stroke:#9a6700,color:#1f2328',
+        'classDef mvp fill:#dafbe1,stroke:#1a7f37,color:#1f2328',
+        'classDef actor fill:#ddf4ff,stroke:#0969da,color:#1f2328',
+        'classDef soi fill:#eae6ff,stroke:#6f42c1,color:#1f2328',
+      ];
+
+      for (const a of actors) {
+        const id = safeId(a.id);
+        lines.push(`${id}([${shortLabel(a.name, a.status)}])`);
+        lines.push(`class ${id} actor`);
+      }
+
+      for (const u of ucs) {
+        const id = safeId(u.id);
+        lines.push(`${id}[${shortLabel(u.name, u.status)}]`);
+        const cls = (u.status || '').toLowerCase() === 'future' ? 'future' : 'mvp';
+        lines.push(`class ${id} ${cls}`);
+      }
+
+      // actor -> use case
+      for (const a of actors) {
+        for (const ref of (a.useCaseRefs || [])) {
+          if (ucById[ref]) lines.push(`${safeId(a.id)} --> ${safeId(ref)}`);
+        }
+      }
+
+      // include and extend
+      for (const u of ucs) {
+        for (const i of (u.includeRefs || [])) lines.push(`${safeId(u.id)} -. include .-> ${safeId(i)}`);
+        for (const e of (u.extendRefs || [])) lines.push(`${safeId(u.id)} -. extend .-> ${safeId(e)}`);
+      }
+
+      return lines.join('\n');
+    }
+
+    function buildLogicalDiagram(l) {
+      const blocks = l.blocks || [];
+      const byId = Object.fromEntries(blocks.map(b => [b.id, b]));
+      const ctx = blocks.find(b => (b.stereotype || '').toLowerCase() === 'context');
+
+      const lines = [
+        'flowchart TB',
+        'classDef context fill:#eae6ff,stroke:#6f42c1,color:#1f2328',
+        'classDef logical fill:#dafbe1,stroke:#1a7f37,color:#1f2328',
+        'classDef external fill:#f6f8fa,stroke:#57606a,color:#1f2328',
+      ];
+
+      if (!ctx) {
+        lines.push('missing[No context block found in logical.yaml]');
+        return lines.join('\n');
+      }
+
+      lines.push(`${safeId(ctx.id)}[${ctx.name}]`);
+      lines.push(`class ${safeId(ctx.id)} context`);
+
+      for (const p of (ctx.parts || [])) {
+        const target = byId[p.typeRef];
+        if (!target) continue;
+        const tid = safeId(target.id);
+        lines.push(`${tid}[${shortLabel(target.name, target.status)}]`);
+        const st = (target.stereotype || '').toLowerCase();
+        lines.push(`class ${tid} ${st === 'external' ? 'external' : 'logical'}`);
+        lines.push(`${safeId(ctx.id)} --> ${tid}`);
+
+        // one level down for logical system decomposition
+        if (st === 'logical' && Array.isArray(target.parts)) {
+          for (const sp of target.parts) {
+            const child = byId[sp.typeRef];
+            if (!child) continue;
+            const cid = safeId(child.id);
+            lines.push(`${cid}[${shortLabel(child.name, child.status)}]`);
+            const cst = (child.stereotype || '').toLowerCase();
+            lines.push(`class ${cid} ${cst === 'external' ? 'external' : 'logical'}`);
+            lines.push(`${tid} --> ${cid}`);
+          }
+        }
+      }
+
+      return lines.join('\n');
+    }
+
+    function buildTraceDiagram(b, r) {
+      const ucs = b.useCases || [];
+      const reqs = r.requirements || [];
+      const reqById = Object.fromEntries(reqs.map(x => [x.id, x]));
+
+      const lines = [
+        'flowchart LR',
+        'classDef uc fill:#ddf4ff,stroke:#0969da,color:#1f2328',
+        'classDef req fill:#fff8c5,stroke:#9a6700,color:#1f2328',
+      ];
+
+      let edgeCount = 0;
+      for (const uc of ucs) {
+        const traces = (uc.traceRefs || []).filter(t => reqById[t]);
+        if (!traces.length) continue;
+        const uid = safeId(uc.id);
+        lines.push(`${uid}[${shortLabel(uc.name, uc.status)}]`);
+        lines.push(`class ${uid} uc`);
+        for (const tr of traces) {
+          const rq = reqById[tr];
+          const rid = safeId(rq.id);
+          lines.push(`${rid}[${rq.name}]`);
+          lines.push(`class ${rid} req`);
+          lines.push(`${uid} -->|traces| ${rid}`);
+          edgeCount++;
+        }
+      }
+
+      if (edgeCount === 0) lines.push('none[No use case -> requirement trace links found]');
+      return lines.join('\n');
+    }
+
+    async function render() {
+      statusEl.textContent = 'Loading YAML and rendering diagrams…';
+      errorEl.style.display = 'none';
+      gridEl.style.display = 'none';
+
+      try {
+        const [behavioral, logical, requirements] = await Promise.all([
+          fetchYaml(files.behavioral),
+          fetchYaml(files.logical),
+          fetchYaml(files.requirements),
+        ]);
+
+        document.getElementById('d-usecase').textContent = buildUseCaseDiagram(behavioral || {});
+        document.getElementById('d-logical').textContent = buildLogicalDiagram(logical || {});
+        document.getElementById('d-trace').textContent = buildTraceDiagram(behavioral || {}, requirements || {});
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        await window.__mermaid.run({ querySelector: '.mermaid' });
+
+        gridEl.style.display = 'grid';
+        statusEl.textContent = 'Live diagrams rendered from latest YAML.';
+      } catch (err) {
+        errorEl.style.display = 'block';
+        errorEl.textContent = `Error rendering diagrams:\n${err.message}`;
+        statusEl.textContent = 'Failed to render diagrams.';
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', render);
+
+    (async () => {
+      while (!window.__mermaid) {
+        await new Promise(r => setTimeout(r, 50));
+      }
+      window.__mermaid.initialize({ startOnLoad: false, securityLevel: 'loose' });
+      render();
+    })();
+  </script>
+</body>
+</html>
