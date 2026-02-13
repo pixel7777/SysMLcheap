@@ -29,11 +29,15 @@
     .status-implemented { background: #ddf4ff; color: #0969da; }
     .status-deprecated { background: #ffebe9; color: var(--red); }
     table { width: 100%; border-collapse: collapse; background: var(--surface);
-            border-radius: 8px; overflow: hidden; }
+            border-radius: 8px; overflow: hidden; table-layout: fixed; }
     thead { background: #f6f8fa; }
-    th { text-align: left; padding: 0.6rem 1rem; font-size: 0.8rem; text-transform: uppercase;
+    th { text-align: left; padding: 0.6rem 1.2rem 0.6rem 1rem; font-size: 0.8rem; text-transform: uppercase;
          color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap;
          cursor: pointer; user-select: none; position: relative; }
+    th.dragging { opacity: 0.5; }
+    .header-label { display: inline-block; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; }
+    .resize-handle { position: absolute; top: 0; right: 0; width: 8px; height: 100%; cursor: col-resize; }
+    .resize-handle:hover { background: rgba(9,105,218,0.15); }
     th:hover { color: var(--accent); }
     th .sort-arrow { font-size: 0.7rem; margin-left: 0.3rem; }
     th .col-filter { display: block; margin-top: 0.3rem; }
@@ -70,6 +74,7 @@
     <label>Search: </label>
     <input id="search" type="text" placeholder="filter across all columns…" />
     <button id="clearAll" title="Clear all filters and sorting">✕ Clear filters</button>
+    <button id="resetLayout" title="Reset column order and widths">↺ Reset layout</button>
     <a href="./diagrams.html" style="text-decoration:none;border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:4px;font-size:0.8rem;color:var(--muted);">Open live diagrams</a>
   </div>
 
@@ -182,6 +187,7 @@
     let sortCol = null;   // field name
     let sortAsc = true;
     let colFilters = {};  // field -> value
+    let tablePrefs = loadTablePrefs(); // tableId -> { order: [field], widths: {field:px} }
 
     // ── Build tabs ───────────────────────────────────────────────────────
     const tabsEl = document.getElementById('tabs');
@@ -196,6 +202,27 @@
     function resetFilters() {
       sortCol = null; sortAsc = true; colFilters = {};
       document.getElementById('search').value = '';
+    }
+
+    function loadTablePrefs() {
+      try { return JSON.parse(localStorage.getItem('sysmlcheap.tablePrefs') || '{}'); }
+      catch { return {}; }
+    }
+    function saveTablePrefs() {
+      localStorage.setItem('sysmlcheap.tablePrefs', JSON.stringify(tablePrefs));
+    }
+    function getCurrentPrefs(tableDef) {
+      if (!tablePrefs[tableDef.id]) tablePrefs[tableDef.id] = { order: [], widths: {} };
+      if (!Array.isArray(tablePrefs[tableDef.id].order)) tablePrefs[tableDef.id].order = [];
+      if (!tablePrefs[tableDef.id].widths || typeof tablePrefs[tableDef.id].widths !== 'object') tablePrefs[tableDef.id].widths = {};
+      return tablePrefs[tableDef.id];
+    }
+    function getOrderedColumns(tableDef) {
+      const prefs = getCurrentPrefs(tableDef);
+      const byField = Object.fromEntries(tableDef.columns.map(c => [c.field, c]));
+      const ordered = prefs.order.map(f => byField[f]).filter(Boolean);
+      const missing = tableDef.columns.filter(c => !prefs.order.includes(c.field));
+      return [...ordered, ...missing];
     }
 
     // ── Fetch ────────────────────────────────────────────────────────────
@@ -240,10 +267,13 @@
           }
         });
 
+        const columns = getOrderedColumns(tableDef);
+        const prefs = getCurrentPrefs(tableDef);
+
         // global search
         const q = document.getElementById('search').value.toLowerCase().trim();
         if (q) rows = rows.filter(r =>
-          tableDef.columns.some(c => String(r[c.field] ?? '').toLowerCase().includes(q)));
+          columns.some(c => String(r[c.field] ?? '').toLowerCase().includes(q)));
 
         // per-column filters
         for (const [field, val] of Object.entries(colFilters)) {
@@ -266,14 +296,44 @@
 
         const table = document.createElement('table');
 
+        // stable widths per column
+        const colgroup = document.createElement('colgroup');
+        columns.forEach(c => {
+          const col = document.createElement('col');
+          if (prefs.widths[c.field]) col.style.width = `${prefs.widths[c.field]}px`;
+          colgroup.appendChild(col);
+        });
+        table.appendChild(colgroup);
+
         // ── thead: header + per-column filters ──
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        tableDef.columns.forEach(c => {
+        columns.forEach(c => {
           const th = document.createElement('th');
+          th.draggable = true;
+          th.dataset.field = c.field;
+
+          // reorder (drag/drop)
+          th.addEventListener('dragstart', () => th.classList.add('dragging'));
+          th.addEventListener('dragend', () => th.classList.remove('dragging'));
+          th.addEventListener('dragover', (e) => e.preventDefault());
+          th.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const from = thead.querySelector('th.dragging')?.dataset.field;
+            const to = c.field;
+            if (!from || from === to) return;
+            const order = getOrderedColumns(tableDef).map(x => x.field);
+            const fromIx = order.indexOf(from), toIx = order.indexOf(to);
+            if (fromIx < 0 || toIx < 0) return;
+            order.splice(toIx, 0, order.splice(fromIx, 1)[0]);
+            prefs.order = order;
+            saveTablePrefs();
+            renderAll();
+          });
 
           // sort label
           const label = document.createElement('span');
+          label.className = 'header-label';
           label.textContent = c.header;
           if (c.sortable) {
             if (sortCol === c.field) {
@@ -320,6 +380,31 @@
             th.appendChild(filterDiv);
           }
 
+          // resize handle
+          const handle = document.createElement('div');
+          handle.className = 'resize-handle';
+          handle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const startX = e.clientX;
+            const startW = th.offsetWidth;
+            const onMove = (ev) => {
+              const w = Math.max(110, startW + (ev.clientX - startX));
+              prefs.widths[c.field] = Math.round(w);
+              const colIx = columns.findIndex(col => col.field === c.field);
+              if (colIx >= 0) colgroup.children[colIx].style.width = `${Math.round(w)}px`;
+            };
+            const onUp = () => {
+              saveTablePrefs();
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+              renderAll();
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+          });
+          th.appendChild(handle);
+
           headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
@@ -329,7 +414,7 @@
         const tbody = document.createElement('tbody');
         rows.forEach(row => {
           const tr = document.createElement('tr');
-          tableDef.columns.forEach(c => {
+          columns.forEach(c => {
             const td = document.createElement('td');
             if (c.cls) td.classList.add(c.cls);
             const val = row[c.field];
@@ -351,6 +436,14 @@
     // ── Listeners ────────────────────────────────────────────────────────
     document.getElementById('search').addEventListener('input', () => { yamlCache = {}; renderAll(); });
     document.getElementById('clearAll').addEventListener('click', () => { yamlCache = {}; resetFilters(); renderAll(); });
+    document.getElementById('resetLayout').addEventListener('click', () => {
+      const tableDef = TABLES.find(t => t.id === currentTable);
+      if (tableDef) {
+        tablePrefs[tableDef.id] = { order: [], widths: {} };
+        saveTablePrefs();
+      }
+      renderAll();
+    });
 
     // ── Init ─────────────────────────────────────────────────────────────
     renderAll();
