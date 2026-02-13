@@ -117,6 +117,25 @@
           { header: 'Traces To',  field: 'traceRefs',           filterable: false,    sortable: false, render: refList },
           { header: 'Documentation', field: 'documentation', cls: 'doc', filterable: 'text', sortable: true },
         ]
+      },
+      {
+        id: 'logical-blocks',
+        label: 'Logical Blocks',
+        file: 'model/logical.yaml',
+        key: 'blocks',
+        rowFilter: (row) => ['logical', 'context', 'external'].includes((row.stereotype || '').toLowerCase()),
+        columns: [
+          { header: 'Name',          field: 'name',          filterable: 'text',   sortable: true },
+          { header: 'ID',            field: 'id', cls: 'id', filterable: 'text',   sortable: true },
+          { header: 'Stereotype',    field: 'stereotype',    filterable: 'select', sortable: true },
+          { header: 'Status',        field: 'status',        filterable: 'select', sortable: true, render: statusBadge },
+          { header: 'Owner',         field: 'ownerRef', cls: 'id', filterable: 'select', sortable: true },
+          { header: 'Realizes Actors', field: '_realizedActors', filterable: false, sortable: false, render: (_, row) => refList(getRealizedActors(row)) },
+          { header: 'Realizes Use Cases', field: '_realizedUseCases', filterable: false, sortable: false, render: (_, row) => refList(getRealizedUseCases(row)) },
+          { header: 'Part Types',    field: '_partTypeRefs', filterable: false, sortable: false, render: (_, row) => refList((row.parts || []).map(p => p.typeRef).filter(Boolean)) },
+          { header: 'Port Interfaces', field: '_portTypeRefs', filterable: false, sortable: false, render: (_, row) => refList((row.ports || []).map(p => p.typeRef).filter(Boolean)) },
+          { header: 'Documentation', field: 'documentation', cls: 'doc', filterable: 'text', sortable: true },
+        ]
       }
     ];
 
@@ -140,6 +159,20 @@
       if (val == null) return '';
       if (Array.isArray(val)) return val.length.toString();
       return String(val).toLowerCase();
+    }
+    function getRealizedActors(row) {
+      const direct = Array.isArray(row.realizationRefs) ? row.realizationRefs : [];
+      const viaParts = Array.isArray(row.parts)
+        ? row.parts.flatMap(p => Array.isArray(p.realizationRefs) ? p.realizationRefs : [])
+        : [];
+      return [...new Set([...direct, ...viaParts].filter(r => String(r).startsWith('act_')))];
+    }
+    function getRealizedUseCases(row) {
+      const direct = Array.isArray(row.realizationRefs) ? row.realizationRefs : [];
+      const viaParts = Array.isArray(row.parts)
+        ? row.parts.flatMap(p => Array.isArray(p.realizationRefs) ? p.realizationRefs : [])
+        : [];
+      return [...new Set([...direct, ...viaParts].filter(r => String(r).startsWith('uc_')))];
     }
 
     // ── State ────────────────────────────────────────────────────────────
@@ -193,6 +226,7 @@
       try {
         const data = await fetchYaml(tableDef.file);
         let rows = [...(data[tableDef.key] || [])];
+        if (tableDef.rowFilter) rows = rows.filter(tableDef.rowFilter);
         const allRows = rows; // for select options
 
         // Build id -> element map for reference rendering (same YAML file)
@@ -298,7 +332,7 @@
             const td = document.createElement('td');
             if (c.cls) td.classList.add(c.cls);
             const val = row[c.field];
-            if (c.render) { td.innerHTML = c.render(val); }
+            if (c.render) { td.innerHTML = c.render(val, row); }
             else { td.textContent = val ?? '—'; }
             tr.appendChild(td);
           });
