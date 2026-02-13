@@ -131,24 +131,11 @@ blocks:
     name: Language Quest System (MVP Single-User)
     documentation: >
       Top-level logical SOI for the MVP single-user configuration.
-      Decomposes into major logical subsystems and exposes external
-      interfaces required for MVP mission outcomes.
+      System-level behavior and functions will be defined here before
+      any subsystem partitioning is introduced.
     stereotype: logical
     ownerRef: pkg_logical
     status: mvp
-    parts:
-      - id: pp_game_engine
-        name: game engine
-        typeRef: blk_log_game_engine
-      - id: pp_language_engine
-        name: language engine
-        typeRef: blk_log_language_engine
-      - id: pp_ai_orchestrator
-        name: ai orchestrator
-        typeRef: blk_log_ai_orchestrator
-      - id: pp_user_manager
-        name: user manager
-        typeRef: blk_log_user_manager
     ports:
       - id: port_sys_learning_ui
         name: learning ui
@@ -170,65 +157,6 @@ blocks:
         name: test harness
         typeRef: ib_log_test_harness
         conjugated: false
-
-  # --- Logical Subsystem Blocks ---
-  - id: blk_log_game_engine
-    name: Game Engine
-    documentation: >
-      Manages TTRPG gameplay mechanics: Lasers & Feelings dice resolution,
-      character sheets, story state, session management, and the
-      narrative interaction loop.
-    stereotype: logical
-    ownerRef: pkg_logical
-    status: mvp
-    ports:
-      - id: port_ge_lang
-        name: language services
-        typeRef: ib_log_language_services
-        conjugated: false
-      - id: port_ge_ai
-        name: ai services
-        typeRef: ib_log_ai_interface
-        conjugated: false
-
-  - id: blk_log_language_engine
-    name: Language Engine
-    documentation: >
-      Core language learning subsystem. Manages vocabulary bins (mastery
-      tracking), grammar bin (progressive introduction), SRS scheduling,
-      and learner proficiency assessment.
-    stereotype: logical
-    ownerRef: pkg_logical
-    status: mvp
-    ports:
-      - id: port_le_svc
-        name: language services
-        typeRef: ib_log_language_services
-        conjugated: true
-
-  - id: blk_log_ai_orchestrator
-    name: AI Orchestrator
-    documentation: >
-      Manages communication with the external AI provider. Handles prompt
-      construction (NovelCrafter-style context assembly), token budget
-      management, and response parsing.
-    stereotype: logical
-    ownerRef: pkg_logical
-    status: mvp
-    ports:
-      - id: port_ao_ai
-        name: ai api
-        typeRef: ib_log_ai_interface
-        conjugated: false
-
-  - id: blk_log_user_manager
-    name: User Manager
-    documentation: >
-      Manages user profile and persistent user-linked data needed in MVP
-      single-user operation.
-    stereotype: logical
-    ownerRef: pkg_logical
-    status: mvp
 
 # ============================================================================
 # INTERFACE BLOCKS & SIGNALS — Logical interfaces
