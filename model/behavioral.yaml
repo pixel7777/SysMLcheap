@@ -208,7 +208,7 @@ useCases:
     ownerRef: pkg_behavioral
     status: mvp
     actorRefs: [act_lqs, act_heidi, act_learner, act_host_platform]
-    traceRefs: []
+    traceRefs: [req_mobile_friendly]
 
   - id: uc_authenticate_users
     name: Authenticate Users
@@ -217,7 +217,7 @@ useCases:
     ownerRef: pkg_behavioral
     status: future
     actorRefs: [act_lqs, act_heidi, act_learner, act_auth_provider]
-    traceRefs: []
+    traceRefs: [src_design_doc]
 
   - id: uc_learn_language
     name: Learn a Language
@@ -234,7 +234,7 @@ useCases:
       - uc_practice_receptive_skills
       - uc_practice_productive_skills
       - uc_retain_progress_across_stories
-    traceRefs: []
+    traceRefs: [req_vocab_tracking, req_srs_scheduling, req_grammar_progressive, req_immersion]
 
   - id: uc_build_vocabulary
     name: Build Vocabulary
@@ -307,7 +307,7 @@ useCases:
       - uc_delete_story
       - uc_manage_story_character
       - uc_manage_story_settings
-    traceRefs: []
+    traceRefs: [req_ai_dm, req_immersion]
 
   - id: uc_start_new_story
     name: Start a New Story
@@ -376,7 +376,7 @@ useCases:
       - uc_view_grammar_progress
       - uc_view_vocabulary_progress
       - uc_receive_progress_rewards
-    traceRefs: []
+    traceRefs: [req_vocab_tracking, req_grammar_progressive]
 
   - id: uc_view_grammar_progress
     name: View Grammar Progress
@@ -412,7 +412,7 @@ useCases:
     ownerRef: pkg_behavioral
     status: mvp
     actorRefs: [act_lqs, act_ai_provider]
-    traceRefs: []
+    traceRefs: [src_design_doc]
 
   - id: uc_generate_sales
     name: Generate Sales
@@ -421,7 +421,7 @@ useCases:
     ownerRef: pkg_behavioral
     status: future
     actorRefs: [act_lqs, act_developer, act_advertising_platform]
-    traceRefs: []
+    traceRefs: [src_design_doc]
 
   - id: uc_manage_payments
     name: Manage Payments
@@ -430,7 +430,7 @@ useCases:
     ownerRef: pkg_behavioral
     status: future
     actorRefs: [act_lqs, act_learner, act_developer, act_payment_provider]
-    traceRefs: []
+    traceRefs: [src_design_doc]
 
   - id: uc_maintain_system
     name: Maintain the System
@@ -444,7 +444,7 @@ useCases:
       - uc_monitor_system_health
       - uc_manage_application_data
       - uc_manage_ai_provider_config
-    traceRefs: []
+    traceRefs: [req_no_data_loss]
 
   - id: uc_publish_new_version
     name: Publish New Version
@@ -494,7 +494,7 @@ useCases:
       - uc_harden_system_security
       - uc_respond_to_security_incidents
       - uc_recover_from_security_incidents
-    traceRefs: []
+    traceRefs: [req_no_data_loss]
 
   - id: uc_monitor_for_threats
     name: Monitor for Threats
@@ -548,7 +548,7 @@ useCases:
       - uc_execute_manual_tests
       - uc_manage_discovered_faults
       - uc_verify_fixes
-    traceRefs: []
+    traceRefs: [src_design_doc]
 
   - id: uc_plan_tests
     name: Plan Tests

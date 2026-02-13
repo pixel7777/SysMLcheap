@@ -25,6 +25,8 @@
               font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
     .status-mvp { background: #dafbe1; color: var(--green); }
     .status-future { background: #fff8c5; color: var(--yellow); }
+    .status-commercial { background: #eae6ff; color: #6f42c1; }
+    .status-implemented { background: #ddf4ff; color: #0969da; }
     .status-deprecated { background: #ffebe9; color: var(--red); }
     table { width: 100%; border-collapse: collapse; background: var(--surface);
             border-radius: 8px; overflow: hidden; }
@@ -107,6 +109,7 @@
         columns: [
           { header: 'Name',       field: 'name',              filterable: 'text',   sortable: true },
           { header: 'ID',         field: 'id',       cls: 'id', filterable: 'text', sortable: true },
+          { header: 'Status',     field: 'status',         filterable: 'select', sortable: true, render: statusBadge },
           { header: 'Owner',      field: 'ownerRef', cls: 'id', filterable: 'select', sortable: true },
           { header: 'Actors',     field: 'actorRefs',           filterable: false,    sortable: false, render: refList },
           { header: 'Extends',    field: 'extendRefs',          filterable: false,    sortable: false, render: refList },
