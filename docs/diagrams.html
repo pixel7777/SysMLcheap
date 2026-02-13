@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SysMLcheap — Live Diagrams</title>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
-  <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    window.__mermaid = mermaid;
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
   <style>
     :root {
       --bg: #fff; --text: #1f2328; --muted: #555; --border: #d0d7de; --accent: #0969da;
@@ -258,7 +255,17 @@
         document.getElementById('d-trace').textContent = buildTraceDiagram(behavioral || {}, requirements || {});
 
         await new Promise(resolve => setTimeout(resolve, 0));
-        await window.__mermaid.run({ querySelector: '.mermaid' });
+
+        if (!window.mermaid) {
+          throw new Error('Mermaid library did not load (possibly blocked by extension/privacy setting).');
+        }
+
+        // Ensure rerenders work by clearing prior processed markers.
+        document.querySelectorAll('.mermaid').forEach(el => {
+          el.removeAttribute('data-processed');
+        });
+
+        await window.mermaid.run({ querySelector: '.mermaid' });
 
         gridEl.style.display = 'grid';
         statusEl.textContent = 'Live diagrams rendered from latest YAML.';
@@ -272,10 +279,20 @@
     document.getElementById('refreshBtn').addEventListener('click', render);
 
     (async () => {
-      while (!window.__mermaid) {
+      let retries = 0;
+      while (!window.mermaid && retries < 100) {
         await new Promise(r => setTimeout(r, 50));
+        retries++;
       }
-      window.__mermaid.initialize({ startOnLoad: false, securityLevel: 'loose' });
+
+      if (!window.mermaid) {
+        statusEl.textContent = 'Failed to load Mermaid library.';
+        errorEl.style.display = 'block';
+        errorEl.textContent = 'Mermaid failed to load. This is usually browser extension/privacy blocking. Try disabling blockers for this page.';
+        return;
+      }
+
+      window.mermaid.initialize({ startOnLoad: false, securityLevel: 'loose' });
       render();
     })();
   </script>
