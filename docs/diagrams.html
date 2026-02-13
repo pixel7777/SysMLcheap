@@ -95,9 +95,20 @@
       return String(id || '').replace(/[^A-Za-z0-9_]/g, '_');
     }
 
+    function safeLabel(text) {
+      return String(text || '')
+        .replace(/"/g, "'")
+        .replace(/\[/g, '(')
+        .replace(/\]/g, ')')
+        .replace(/\n/g, ' ');
+    }
+
+    function node(id, label) {
+      return `${safeId(id)}["${safeLabel(label)}"]`;
+    }
+
     function shortLabel(name, status) {
       const s = (status || '').toLowerCase();
-      // Avoid square brackets in Mermaid node labels; they conflict with shape syntax.
       if (s === 'future') return `${name} (future)`;
       if (s === 'commercial') return `${name} (commercial)`;
       return name;
@@ -125,13 +136,13 @@
 
       for (const a of actors) {
         const id = safeId(a.id);
-        lines.push(`${id}([${shortLabel(a.name, a.status)}])`);
+        lines.push(node(id, shortLabel(a.name, a.status)));
         lines.push(`class ${id} actor`);
       }
 
       for (const u of ucs) {
         const id = safeId(u.id);
-        lines.push(`${id}[${shortLabel(u.name, u.status)}]`);
+        lines.push(node(id, shortLabel(u.name, u.status)));
         const cls = (u.status || '').toLowerCase() === 'future' ? 'future' : 'mvp';
         lines.push(`class ${id} ${cls}`);
       }
@@ -165,18 +176,18 @@
       ];
 
       if (!ctx) {
-        lines.push('missing[No context block found in logical.yaml]');
+        lines.push(node('missing', 'No context block found in logical.yaml'));
         return lines.join('\n');
       }
 
-      lines.push(`${safeId(ctx.id)}[${ctx.name}]`);
+      lines.push(node(ctx.id, ctx.name));
       lines.push(`class ${safeId(ctx.id)} context`);
 
       for (const p of (ctx.parts || [])) {
         const target = byId[p.typeRef];
         if (!target) continue;
         const tid = safeId(target.id);
-        lines.push(`${tid}[${shortLabel(target.name, target.status)}]`);
+        lines.push(node(tid, shortLabel(target.name, target.status)));
         const st = (target.stereotype || '').toLowerCase();
         lines.push(`class ${tid} ${st === 'external' ? 'external' : 'logical'}`);
         lines.push(`${safeId(ctx.id)} --> ${tid}`);
@@ -187,7 +198,7 @@
             const child = byId[sp.typeRef];
             if (!child) continue;
             const cid = safeId(child.id);
-            lines.push(`${cid}[${shortLabel(child.name, child.status)}]`);
+            lines.push(node(cid, shortLabel(child.name, child.status)));
             const cst = (child.stereotype || '').toLowerCase();
             lines.push(`class ${cid} ${cst === 'external' ? 'external' : 'logical'}`);
             lines.push(`${tid} --> ${cid}`);
@@ -214,19 +225,19 @@
         const traces = (uc.traceRefs || []).filter(t => reqById[t]);
         if (!traces.length) continue;
         const uid = safeId(uc.id);
-        lines.push(`${uid}[${shortLabel(uc.name, uc.status)}]`);
+        lines.push(node(uid, shortLabel(uc.name, uc.status)));
         lines.push(`class ${uid} uc`);
         for (const tr of traces) {
           const rq = reqById[tr];
           const rid = safeId(rq.id);
-          lines.push(`${rid}[${rq.name}]`);
+          lines.push(node(rid, rq.name));
           lines.push(`class ${rid} req`);
           lines.push(`${uid} -->|traces| ${rid}`);
           edgeCount++;
         }
       }
 
-      if (edgeCount === 0) lines.push('none[No use case -> requirement trace links found]');
+      if (edgeCount === 0) lines.push(node('none', 'No use case -> requirement trace links found'));
       return lines.join('\n');
     }
 
