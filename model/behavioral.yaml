@@ -20,6 +20,11 @@ actors:
       - uc_learn_pronunciation
       - uc_practice_receptive_skills
       - uc_practice_productive_skills
+      - uc_review_srs_session
+      - uc_request_learning_explanation
+      - uc_use_instructor_mode
+      - uc_manage_learner_profile
+      - uc_correct_learning_record
       - uc_retain_progress_across_stories
       - uc_play_rpg
       - uc_start_new_story
@@ -64,6 +69,10 @@ actors:
       - uc_access_application
       - uc_authenticate_users
       - uc_learn_language
+      - uc_review_srs_session
+      - uc_request_learning_explanation
+      - uc_use_instructor_mode
+      - uc_correct_learning_record
       - uc_play_rpg
       - uc_understand_learning_progress
     realizedByRefs: []
@@ -79,6 +88,11 @@ actors:
       - uc_access_application
       - uc_authenticate_users
       - uc_learn_language
+      - uc_review_srs_session
+      - uc_request_learning_explanation
+      - uc_use_instructor_mode
+      - uc_manage_learner_profile
+      - uc_correct_learning_record
       - uc_play_rpg
       - uc_understand_learning_progress
       - uc_manage_payments
@@ -149,6 +163,9 @@ actors:
     status: mvp
     useCaseRefs:
       - uc_learn_language
+      - uc_review_srs_session
+      - uc_request_learning_explanation
+      - uc_use_instructor_mode
       - uc_play_rpg
       - uc_understand_learning_progress
       - uc_manage_evolving_context
@@ -233,6 +250,9 @@ useCases:
       - uc_learn_pronunciation
       - uc_practice_receptive_skills
       - uc_practice_productive_skills
+      - uc_review_srs_session
+      - uc_request_learning_explanation
+      - uc_manage_learner_profile
       - uc_retain_progress_across_stories
     traceRefs: [req_vocab_tracking, req_srs_scheduling, req_grammar_progressive, req_immersion]
 
@@ -283,6 +303,36 @@ useCases:
     actorRefs: [act_lqs]
     traceRefs: []
 
+  - id: uc_review_srs_session
+    name: Review Scheduled Items (SRS Session)
+    documentation: >
+      Run a dedicated spaced-repetition review session independent from story
+      gameplay, using due-item scheduling and performance updates.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner, act_ai_provider]
+    traceRefs: [req_srs_scheduling, req_vocab_tracking]
+
+  - id: uc_request_learning_explanation
+    name: Request Learning Explanation
+    documentation: >
+      Request clear explanation of why a response is correct/incorrect,
+      including grammar, meaning, or usage guidance.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner, act_ai_provider]
+    traceRefs: [req_grammar_progressive]
+
+  - id: uc_manage_learner_profile
+    name: Manage Learner Profile & Preferences
+    documentation: >
+      Configure learner-specific settings such as source/target language,
+      learning goals, pacing preferences, and content boundaries.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs, act_learner]
+    traceRefs: [src_design_doc]
+
   - id: uc_retain_progress_across_stories
     name: Retain Language Progress Across Stories
     documentation: >
@@ -307,6 +357,7 @@ useCases:
       - uc_delete_story
       - uc_manage_story_character
       - uc_manage_story_settings
+      - uc_use_instructor_mode
     traceRefs: [req_ai_dm, req_immersion]
 
   - id: uc_start_new_story
@@ -365,6 +416,16 @@ useCases:
     actorRefs: [act_lqs]
     traceRefs: []
 
+  - id: uc_use_instructor_mode
+    name: Use Instructor Mode (Break Character)
+    documentation: >
+      Temporarily break RPG character to ask meta-level learning questions in
+      plain language, then return to story mode.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner, act_ai_provider]
+    traceRefs: [src_design_doc]
+
   - id: uc_understand_learning_progress
     name: Understand Learning Progress
     documentation: >
@@ -376,6 +437,7 @@ useCases:
       - uc_view_grammar_progress
       - uc_view_vocabulary_progress
       - uc_receive_progress_rewards
+      - uc_correct_learning_record
     traceRefs: [req_vocab_tracking, req_grammar_progressive]
 
   - id: uc_view_grammar_progress
@@ -405,6 +467,16 @@ useCases:
     actorRefs: [act_lqs]
     traceRefs: []
 
+  - id: uc_correct_learning_record
+    name: Correct Learning Record
+    documentation: >
+      Review and correct learning records when automated assessment is
+      inaccurate, preserving trust and data quality.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner]
+    traceRefs: [req_vocab_tracking]
+
   - id: uc_manage_evolving_context
     name: Manage Evolving Context
     documentation: >
@@ -415,9 +487,10 @@ useCases:
     traceRefs: [src_design_doc]
 
   - id: uc_generate_sales
-    name: Generate Sales
+    name: Monetize Product
     documentation: >
-      Support future monetization via ads and conversion flows.
+      Support future monetization via ads, conversion flows, and commercial
+      packaging choices.
     ownerRef: pkg_behavioral
     status: future
     actorRefs: [act_lqs, act_developer, act_advertising_platform]
