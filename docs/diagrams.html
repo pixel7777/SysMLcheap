@@ -25,10 +25,18 @@
       font-size: .85rem;
     }
     .toolbar a:hover, .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+    .views-nav { display: flex; gap: .5rem; margin: 0 0 1rem 0; flex-wrap: wrap; }
+    .views-nav button {
+      border: 1px solid var(--border); background: #fff; color: var(--text);
+      border-radius: 6px; padding: .4rem .8rem; cursor: pointer; font-size: .85rem;
+    }
+    .views-nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
     .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
     .panel {
       border: 1px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden;
     }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
     .panel h2 {
       margin: 0; padding: .6rem .9rem; background: var(--card); border-bottom: 1px solid var(--border);
       font-size: .95rem;
@@ -53,20 +61,26 @@
   <div id="status">Loading model…</div>
   <div id="error"></div>
 
+  <div class="views-nav" id="viewsNav" style="display:none;">
+    <button data-view="usecase" class="active">Use Case</button>
+    <button data-view="logical">Logical Context</button>
+    <button data-view="trace">Req Trace</button>
+  </div>
+
   <div class="grid" id="grid" style="display:none;">
-    <section class="panel">
+    <section class="panel view-panel active" id="panel-usecase">
       <h2>Use Case Overview</h2>
       <div class="meta">MVP-focused actor/use-case map (future elements included but visually marked)</div>
       <div class="diagram-wrap"><div class="diagram" id="d-usecase"></div></div>
     </section>
 
-    <section class="panel">
+    <section class="panel view-panel" id="panel-logical">
       <h2>Logical Context (MVP Single-User)</h2>
       <div class="meta">Context block and top-level logical decomposition</div>
       <div class="diagram-wrap"><div class="diagram" id="d-logical"></div></div>
     </section>
 
-    <section class="panel">
+    <section class="panel view-panel" id="panel-trace">
       <h2>Requirement ↔ Use Case Trace (Sample)</h2>
       <div class="meta">Trace refs from behavioral use cases to requirements</div>
       <div class="diagram-wrap"><div class="diagram" id="d-trace"></div></div>
@@ -88,6 +102,7 @@
     const statusEl = document.getElementById('status');
     const errorEl = document.getElementById('error');
     const gridEl = document.getElementById('grid');
+    const viewsNavEl = document.getElementById('viewsNav');
 
     function safeId(id) {
       return String(id || '').replace(/[^A-Za-z0-9_]/g, '_');
@@ -129,21 +144,23 @@
         'classDef future fill:#fff8c5,stroke:#9a6700,color:#1f2328',
         'classDef mvp fill:#dafbe1,stroke:#1a7f37,color:#1f2328',
         'classDef actor fill:#ddf4ff,stroke:#0969da,color:#1f2328',
-        'classDef soi fill:#eae6ff,stroke:#6f42c1,color:#1f2328',
       ];
 
+      // Actors rendered as circles to visually separate from use cases.
       for (const a of actors) {
         const id = safeId(a.id);
-        lines.push(node(id, shortLabel(a.name, a.status)));
+        lines.push(`${id}(("${safeLabel(shortLabel(a.name, a.status))}"))`);
         lines.push(`class ${id} actor`);
       }
 
+      lines.push('subgraph soi["Language Questing System (SOI)"]');
       for (const u of ucs) {
         const id = safeId(u.id);
-        lines.push(node(id, shortLabel(u.name, u.status)));
+        lines.push(`${id}(["${safeLabel(shortLabel(u.name, u.status))}"])`);
         const cls = (u.status || '').toLowerCase() === 'future' ? 'future' : 'mvp';
         lines.push(`class ${id} ${cls}`);
       }
+      lines.push('end');
 
       // actor -> use case
       for (const a of actors) {
@@ -251,6 +268,7 @@
       statusEl.textContent = 'Loading YAML and rendering diagrams…';
       errorEl.style.display = 'none';
       gridEl.style.display = 'none';
+      viewsNavEl.style.display = 'none';
 
       try {
         const [behavioral, logical, requirements] = await Promise.all([
@@ -272,6 +290,8 @@
         await renderInto('d-trace', traceDef, 'trace');
 
         gridEl.style.display = 'grid';
+        viewsNavEl.style.display = 'flex';
+        setView('usecase');
         statusEl.textContent = 'Live diagrams rendered from latest YAML.';
       } catch (err) {
         errorEl.style.display = 'block';
@@ -279,6 +299,15 @@
         statusEl.textContent = 'Failed to render diagrams.';
       }
     }
+
+    function setView(view) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${view}`));
+      viewsNavEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    }
+
+    viewsNavEl.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => setView(btn.dataset.view));
+    });
 
     document.getElementById('refreshBtn').addEventListener('click', render);
 
