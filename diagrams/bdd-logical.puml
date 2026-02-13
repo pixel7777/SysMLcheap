@@ -31,6 +31,14 @@ class "Test Bench External" <<external>> as blk_log_ext_test_bench {
 }
 
 class "Language Quest System (MVP Single-User)" <<logical>> as blk_log_system_mvp_single_user {
+  requestApplicationEntry()
+  evaluateAccessGateRequirement()
+  validateLocalAccessCredential()
+  establishLearnerSession()
+  loadMvpStaticConfiguration()
+  loadCurrentStories()
+  loadLearnerProgressSummary()
+  renderLearnerHomeView()
   <<port>> ~learning ui : Learning UI
   <<port>> ~operations ui : Operations UI
   <<port>> ai : AI Interface

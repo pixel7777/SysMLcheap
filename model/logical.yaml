@@ -136,6 +136,140 @@ blocks:
     stereotype: logical
     ownerRef: pkg_logical
     status: mvp
+    operations:
+      - id: op_request_application_entry
+        name: requestApplicationEntry
+        documentation: >
+          Accept an application entry request from a user browser session
+          and initiate the access sequence.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_request_application_entry_in
+            name: entry request
+            direction: in
+            typeRef: sig_app_entry_request
+          - id: par_op_request_application_entry_out
+            name: entry response
+            direction: out
+            typeRef: sig_app_entry_response
+
+      - id: op_evaluate_access_gate_requirement
+        name: evaluateAccessGateRequirement
+        documentation: >
+          Determine whether local MVP access gating is required for the
+          incoming session context.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_evaluate_access_gate_requirement_in
+            name: entry request
+            direction: in
+            typeRef: sig_app_entry_request
+          - id: par_op_evaluate_access_gate_requirement_out
+            name: gate decision
+            direction: out
+            typeRef: sig_access_gate_decision
+
+      - id: op_validate_local_access_credential
+        name: validateLocalAccessCredential
+        documentation: >
+          Validate locally managed access credential for MVP single-user access.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_validate_local_access_credential_in
+            name: local credential
+            direction: in
+            typeRef: sig_local_access_credential
+          - id: par_op_validate_local_access_credential_out
+            name: credential result
+            direction: out
+            typeRef: sig_credential_validation_result
+
+      - id: op_establish_learner_session
+        name: establishLearnerSession
+        documentation: >
+          Establish a trusted local learner session after successful access
+          gate evaluation and credential validation.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_establish_learner_session_in
+            name: credential result
+            direction: in
+            typeRef: sig_credential_validation_result
+          - id: par_op_establish_learner_session_out
+            name: learner session
+            direction: out
+            typeRef: sig_learner_session
+
+      - id: op_load_mvp_static_configuration
+        name: loadMvpStaticConfiguration
+        documentation: >
+          Load static MVP learner configuration values used to initialize
+          learner-facing views and defaults.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_load_mvp_static_configuration_in
+            name: learner session
+            direction: in
+            typeRef: sig_learner_session
+          - id: par_op_load_mvp_static_configuration_out
+            name: mvp configuration snapshot
+            direction: out
+            typeRef: sig_mvp_configuration_snapshot
+
+      - id: op_load_current_stories
+        name: loadCurrentStories
+        documentation: >
+          Retrieve available and resumable story records for the learner.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_load_current_stories_in
+            name: learner session
+            direction: in
+            typeRef: sig_learner_session
+          - id: par_op_load_current_stories_out
+            name: current story summary
+            direction: out
+            typeRef: sig_current_story_summary
+
+      - id: op_load_learner_progress_summary
+        name: loadLearnerProgressSummary
+        documentation: >
+          Retrieve learner progress summary needed for main learner UI
+          initialization.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_load_learner_progress_summary_in
+            name: learner session
+            direction: in
+            typeRef: sig_learner_session
+          - id: par_op_load_learner_progress_summary_out
+            name: learner progress summary
+            direction: out
+            typeRef: sig_learner_progress_summary
+
+      - id: op_render_learner_home_view
+        name: renderLearnerHomeView
+        documentation: >
+          Compose and present the learner home view model using configuration,
+          story, and progress data.
+        ownerRef: blk_log_system_mvp_single_user
+        parameters:
+          - id: par_op_render_learner_home_view_cfg
+            name: mvp configuration snapshot
+            direction: in
+            typeRef: sig_mvp_configuration_snapshot
+          - id: par_op_render_learner_home_view_story
+            name: current story summary
+            direction: in
+            typeRef: sig_current_story_summary
+          - id: par_op_render_learner_home_view_progress
+            name: learner progress summary
+            direction: in
+            typeRef: sig_learner_progress_summary
+          - id: par_op_render_learner_home_view_out
+            name: learner home view model
+            direction: out
+            typeRef: sig_learner_home_view_model
     ports:
       - id: port_sys_learning_ui
         name: learning ui
@@ -168,6 +302,22 @@ interfaceBlocks:
     stereotype: logical
     ownerRef: pkg_logical
     flowProperties:
+      - id: fp_lui_app_entry_request
+        name: app entry request
+        direction: inout
+        typeRef: sig_app_entry_request
+      - id: fp_lui_app_entry_response
+        name: app entry response
+        direction: out
+        typeRef: sig_app_entry_response
+      - id: fp_lui_local_access_credential
+        name: local access credential
+        direction: inout
+        typeRef: sig_local_access_credential
+      - id: fp_lui_learner_home_view
+        name: learner home view model
+        direction: out
+        typeRef: sig_learner_home_view_model
       - id: fp_lui_player_input
         name: player input
         direction: inout
@@ -252,6 +402,81 @@ interfaceBlocks:
         typeRef: sig_assessment_result
 
 signals:
+  - id: sig_app_entry_request
+    name: App Entry Request
+    documentation: >
+      Request from a browser client to access the application entry point
+      at the configured URL.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_app_entry_response
+    name: App Entry Response
+    documentation: >
+      Initial application response indicating access gate state and next
+      action for session establishment.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_access_gate_decision
+    name: Access Gate Decision
+    documentation: >
+      Decision indicating whether local access credential validation is
+      required for this session.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_local_access_credential
+    name: Local Access Credential
+    documentation: >
+      Locally managed MVP credential submitted to pass the access gate.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_credential_validation_result
+    name: Credential Validation Result
+    documentation: >
+      Result of local credential validation including success/failure
+      outcome and reason code.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_learner_session
+    name: Learner Session
+    documentation: >
+      Trusted local session context representing successful learner access.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_mvp_configuration_snapshot
+    name: MVP Configuration Snapshot
+    documentation: >
+      Effective static MVP learner configuration values loaded at access time.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_current_story_summary
+    name: Current Story Summary
+    documentation: >
+      Summary of available and resumable stories presented on learner entry.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_learner_progress_summary
+    name: Learner Progress Summary
+    documentation: >
+      Summary of learner progress state needed for home view initialization.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_learner_home_view_model
+    name: Learner Home View Model
+    documentation: >
+      Composed learner-facing home view data including configuration,
+      current stories, and progress snapshot.
+    ownerRef: pkg_logical
+    status: mvp
+
   - id: sig_player_input
     name: Player Input
     documentation: >

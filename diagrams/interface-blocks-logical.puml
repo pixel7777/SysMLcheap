@@ -5,6 +5,10 @@ skinparam class {
 }
 
 class "Learning UI" <<logical>> as ib_log_learning_ui {
+  inout app entry request : App Entry Request
+  out app entry response : App Entry Response
+  inout local access credential : Local Access Credential
+  out learner home view model : Learner Home View Model
   inout player input : Player Input
   out narrative output : Narrative Output
   out multiple choice options : Multiple Choice Options
@@ -35,6 +39,16 @@ class "Language Services" <<logical>> as ib_log_language_services {
   out assessment result : Assessment Result
 }
 
+class "App Entry Request" <<signal>> as sig_app_entry_request
+class "App Entry Response" <<signal>> as sig_app_entry_response
+class "Access Gate Decision" <<signal>> as sig_access_gate_decision
+class "Local Access Credential" <<signal>> as sig_local_access_credential
+class "Credential Validation Result" <<signal>> as sig_credential_validation_result
+class "Learner Session" <<signal>> as sig_learner_session
+class "MVP Configuration Snapshot" <<signal>> as sig_mvp_configuration_snapshot
+class "Current Story Summary" <<signal>> as sig_current_story_summary
+class "Learner Progress Summary" <<signal>> as sig_learner_progress_summary
+class "Learner Home View Model" <<signal>> as sig_learner_home_view_model
 class "Player Input" <<signal>> as sig_player_input
 class "Narrative Output" <<signal>> as sig_narrative_output
 class "Multiple Choice Options" <<signal>> as sig_mc_options
@@ -49,6 +63,10 @@ class "Test Result" <<signal>> as sig_test_result
 class "Vocabulary Query" <<signal>> as sig_vocab_query
 class "Assessment Result" <<signal>> as sig_assessment_result
 
+ib_log_learning_ui ..> sig_app_entry_request : <<conveys>>
+ib_log_learning_ui ..> sig_app_entry_response : <<conveys>>
+ib_log_learning_ui ..> sig_local_access_credential : <<conveys>>
+ib_log_learning_ui ..> sig_learner_home_view_model : <<conveys>>
 ib_log_learning_ui ..> sig_player_input : <<conveys>>
 ib_log_learning_ui ..> sig_narrative_output : <<conveys>>
 ib_log_learning_ui ..> sig_mc_options : <<conveys>>
