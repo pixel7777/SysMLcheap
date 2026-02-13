@@ -1,28 +1,43 @@
 @startuml Use Case Diagram
+' ============================================================================
+' ACTORS ONLY — Use cases to be defined in next working session
+' Actors shown with status tags; use cases temporarily cleared
+' ============================================================================
+
 left to right direction
 skinparam packageStyle rectangle
+skinparam actorStyle awesome
 
-actor "Learner" as act_learner
-actor "AI Provider" as act_ai_provider
+' ── System of Interest ──
+actor "Language Questing\nSystem" as act_lqs #LightBlue
 
-rectangle "Croatian Learning App" {
-  usecase "Configure New Story (Session 0)" as uc_session_zero
-  usecase "Play Story Session" as uc_play_session
-  usecase "Review Vocabulary" as uc_review_vocab
-  usecase "Manage Wiki/Codex" as uc_manage_codex
-  usecase "View Learning Progress" as uc_view_progress
-  usecase "Roll Dice (L&F Mechanic)" as uc_roll_dice
-  usecase "Assess Learner Response" as uc_assess_response
+' ── Human Actors (MVP) ──
+actor "Heidi" as act_heidi #PaleGreen
+actor "Tester" as act_tester #PaleGreen
+actor "Maintainer" as act_maintainer #PaleGreen
+
+' ── Human Actors (Future) ──
+actor "Learner" as act_learner #LightGoldenRodYellow
+actor "Security\nSpecialist" as act_security_specialist #LightGoldenRodYellow
+
+' ── External System Actors (MVP) ──
+actor "AI Provider" as act_ai_provider #PaleGreen
+actor "Host Platform" as act_host_platform #PaleGreen
+
+' ── External System Actors (Future) ──
+actor "Payment\nProvider" as act_payment_provider #LightGoldenRodYellow
+actor "Advertising\nPlatform" as act_advertising_platform #LightGoldenRodYellow
+actor "Authentication\nProvider" as act_auth_provider #LightGoldenRodYellow
+
+rectangle "Language Questing System" {
+  ' Use cases TBD
 }
 
-act_learner --> uc_play_session
-act_learner --> uc_review_vocab
-act_learner --> uc_session_zero
-act_learner --> uc_manage_codex
-act_learner --> uc_view_progress
-act_ai_provider --> uc_play_session
-act_ai_provider --> uc_review_vocab
-uc_play_session ..> uc_roll_dice : <<include>>
-uc_play_session ..> uc_assess_response : <<include>>
+legend right
+  |= Color |= Status |
+  | <#LightBlue> | System of Interest |
+  | <#PaleGreen> | MVP |
+  | <#LightGoldenRodYellow> | Future |
+endlegend
 
 @enduml

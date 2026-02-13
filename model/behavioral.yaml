@@ -3,96 +3,166 @@
 # ============================================================================
 
 actors:
+  # ── System of Interest ───────────────────────────────────────────────────
+  - id: act_lqs
+    name: Language Questing System
+    documentation: >
+      The system of interest (SOI) — the application under development.
+      A software-only, web-based language learning platform that combines
+      AI-driven TTRPG gameplay with SRS vocabulary review and progressive
+      grammar instruction. All use cases in this model represent uses of
+      this system. Maps to the system context block in the logical
+      architecture.
+    ownerRef: pkg_behavioral
+    status: mvp
+    useCaseRefs: []  # TBD — will be populated when use cases are defined
+    realizedByRefs: []  # TBD — system context block
+
+  # ── Human Actors ─────────────────────────────────────────────────────────
+  - id: act_heidi
+    name: Heidi
+    documentation: >
+      The initial user of the Language Questing System. A native English
+      speaker (L1=English) with Croatian as her target language (L2=Croatian).
+      Use cases associated with Heidi represent a set of defaults specific
+      to her as the first user: language pair, content preferences, genre
+      preferences, and learning goals. These defaults are hardcoded for the
+      Heidi-only MVP and are intended to later become configurable variables
+      populated by application functions that solicit this information from
+      the Learner actor.
+    ownerRef: pkg_behavioral
+    status: mvp
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
+
   - id: act_learner
     name: Learner
     documentation: >
-      A Croatian language learner who interacts with the system through
-      a web browser. The primary user — plays the TTRPG, reviews vocabulary,
-      and progresses through stories.
+      A paying user of the Language Questing System who may have different
+      preferences from Heidi. May have a different native language (L1),
+      different target language (though Croatian is the initial supported
+      L2), different content tolerances, and different learning goals.
+      Learner use cases include all configuration and personalization
+      functions that are hardcoded defaults in the Heidi-only MVP.
+      No generalization relationship to Heidi — these are distinct actors
+      with independently maintained use case associations.
     ownerRef: pkg_behavioral
-    useCaseRefs: [uc_play_session, uc_review_vocab, uc_session_zero, uc_manage_codex, uc_view_progress]
-    realizedByRefs: []  # TBD — will link to context part properties
+    status: future
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
 
+  - id: act_tester
+    name: Tester
+    documentation: >
+      Validates system behavior against requirements. Executes test cases,
+      reports defects, and verifies fixes. For the Heidi-only MVP this role
+      is performed by Heidi, but the actor is modeled distinctly because the
+      concerns (testing vs. learning) are different and drive different use
+      cases and interface requirements.
+    ownerRef: pkg_behavioral
+    status: mvp
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
+
+  - id: act_maintainer
+    name: Maintainer
+    documentation: >
+      Administers the deployed Language Questing System. Responsible for
+      deployment, updates, monitoring, log review, data management, backup,
+      and incident response. For the Heidi-only MVP this role is performed
+      by Heidi, but it is modeled distinctly because maintenance activities
+      drive their own use cases, requirements, and tooling needs.
+    ownerRef: pkg_behavioral
+    status: mvp
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
+
+  - id: act_security_specialist
+    name: Security Specialist
+    documentation: >
+      Audits and hardens the Language Questing System. Reviews
+      authentication, authorization, data protection, and vulnerability
+      posture. Not required for the Heidi-only MVP but essential before
+      the system accepts payment or stores other users' data.
+    ownerRef: pkg_behavioral
+    status: future
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
+
+  # ── External System Actors ──────────────────────────────────────────────
   - id: act_ai_provider
     name: AI Provider
     documentation: >
-      External AI language model service (e.g., Claude, GPT) that generates
-      narrative content, evaluates free-text responses, and calibrates
-      difficulty. Accessed via API.
+      An external provider of AI services whose usage is procured for the
+      Language Questing System. Accessed via API using a token-based
+      authentication model (e.g., Claude API, OpenAI API). This actor
+      represents ONLY external API-based AI interactions. AI-driven
+      capabilities that are internal to the system (e.g., app-hosted LLMs,
+      local inference) are modeled as components of the Language Questing
+      System itself, not as interactions with this actor.
     ownerRef: pkg_behavioral
-    useCaseRefs: [uc_play_session, uc_review_vocab]
+    status: mvp
+    useCaseRefs: []  # TBD
     realizedByRefs: []
 
-useCases:
-  - id: uc_session_zero
-    name: Configure New Story (Session 0)
+  - id: act_host_platform
+    name: Host Platform
     documentation: >
-      Learner sets up a new story: selects genre, tone, lines & veils,
-      and creates a character concept. Conducted in English. Produces
-      a story configuration that guides all subsequent AI-DM behavior.
+      The infrastructure platform where the Language Questing System is
+      deployed. Could be a cloud provider (e.g., AWS), a VPS, or another
+      hosting solution. Provides compute, storage, networking, and
+      potentially managed services (databases, CDN, etc.). The Language
+      Questing System is software-only; all hardware and infrastructure
+      concerns are delegated to this actor, which negates the need for
+      internal hardware components in the SOI model.
     ownerRef: pkg_behavioral
-    actorRefs: [act_learner]
-    traceRefs: [req_session_zero]
+    status: mvp
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
 
-  - id: uc_play_session
-    name: Play Story Session
+  - id: act_payment_provider
+    name: Payment Provider
     documentation: >
-      Core gameplay loop. Learner interacts with AI-DM in Croatian through
-      multiple choice and free text. AI generates narrative, presents choices,
-      evaluates responses, triggers dice rolls, and updates vocabulary/grammar
-      tracking. Session has a configurable time budget.
+      An external payment processing service (e.g., Stripe, PayPal) that
+      handles monetary transactions for the Language Questing System.
+      Manages subscription billing, payment method storage, refunds, and
+      transaction records. Required only when the system begins accepting
+      paying Learner users.
     ownerRef: pkg_behavioral
-    actorRefs: [act_learner, act_ai_provider]
-    traceRefs: [req_ai_dm, req_immersion]
-    includeRefs: [uc_roll_dice, uc_assess_response]
+    status: future
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
 
-  - id: uc_review_vocab
-    name: Review Vocabulary
+  - id: act_advertising_platform
+    name: Advertising Platform
     documentation: >
-      SRS-driven review mode. System presents due vocabulary items for review
-      using contextual recall (scenes where the word appeared). Supports
-      both recognition and production testing.
+      An external advertising network that serves ads within the Language
+      Questing System as a monetization channel. Future-only — represents
+      a potential revenue stream alternative or supplement to direct
+      user payment.
     ownerRef: pkg_behavioral
-    actorRefs: [act_learner, act_ai_provider]
-    traceRefs: [req_vocab_tracking, req_srs_scheduling]
+    status: future
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
 
-  - id: uc_manage_codex
-    name: Manage Wiki/Codex
+  - id: act_auth_provider
+    name: Authentication Provider
     documentation: >
-      Learner views and edits the story codex: NPCs, locations, items,
-      timeline. Entries are auto-generated during play and user-editable.
-      Codex entries are used for AI context management (NovelCrafter-style).
+      An external identity and authentication service (e.g., OAuth provider,
+      Auth0, Firebase Auth) that manages user identity, login, and session
+      tokens for the Language Questing System. Not required for the
+      Heidi-only MVP (simple authentication sufficient) but essential for
+      multi-user operation with the Learner actor.
     ownerRef: pkg_behavioral
-    actorRefs: [act_learner]
-    traceRefs: [src_design_doc]
+    status: future
+    useCaseRefs: []  # TBD
+    realizedByRefs: []
 
-  - id: uc_view_progress
-    name: View Learning Progress
-    documentation: >
-      Learner views their language learning progress: vocabulary mastery
-      distribution, grammar rules learned, SRS statistics, and story
-      completion status.
-    ownerRef: pkg_behavioral
-    actorRefs: [act_learner]
-    traceRefs: [src_design_doc]
+# ============================================================================
+# USE CASES — To be defined in next working session
+# ============================================================================
+# Existing use cases temporarily removed during actor restructuring.
+# They will be rebuilt with proper actor associations and status tags.
+# Known validation gap: actors currently have no use case associations.
 
-  - id: uc_roll_dice
-    name: Roll Dice (L&F Mechanic)
-    documentation: >
-      Lasers & Feelings dice resolution. Player rolls d6s, results compared
-      against their stat number. Determines narrative outcome (success,
-      failure, mixed, critical). Triggered during story play.
-    ownerRef: pkg_behavioral
-    actorRefs: []
-    traceRefs: [src_lasers_feelings]
-    extensionPoints: []
-
-  - id: uc_assess_response
-    name: Assess Learner Response
-    documentation: >
-      AI evaluates the learner's Croatian response (free text or MC selection).
-      Updates vocabulary mastery levels, grammar exposure tracking, and
-      determines game-point awards. Free text earns higher assessment weight.
-    ownerRef: pkg_behavioral
-    actorRefs: []
-    traceRefs: [req_vocab_tracking]
+useCases: []

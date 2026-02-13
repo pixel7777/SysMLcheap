@@ -1,5 +1,5 @@
 # ============================================================================
-# METAMODEL SCHEMA v0.1
+# METAMODEL SCHEMA v0.2
 # Lightweight MBSE Metamodel for YAML+PlantUML Toolchain
 # Reverse-engineered from SAIC DE Validation Rules v27 & Style Guide v27
 # ============================================================================
@@ -10,6 +10,14 @@
 #   - Stereotypes are explicit fields (stereotype: logical | physical | context | external | software | analysis)
 #   - "Ref" suffix = reference to another element's id
 #   - "Refs" suffix = list of references
+#   - All elements support a common "status" field (see ADR-009)
+#
+# ──────────────────────────────────────────────────────────────────────────────
+# COMMON PROPERTIES — Inherited by all element types
+# ──────────────────────────────────────────────────────────────────────────────
+# Every model element supports these fields in addition to its type-specific ones:
+#   status:  { type: enum, values: [mvp, future, commercial, implemented], default: mvp }
+#            Tracks scope and maturity per ADR-009. Validator can filter/report by status.
 #
 # EXCLUDED (not needed for our project scope):
 #   - Model Federation rules (multi-model composition)
