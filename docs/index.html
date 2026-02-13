@@ -98,6 +98,22 @@
           { header: 'Realized By',field: 'realizedByRefs', filterable: false,    sortable: false, render: refList },
           { header: 'Documentation', field: 'documentation', cls: 'doc', filterable: 'text', sortable: true },
         ]
+      },
+      {
+        id: 'usecases',
+        label: 'Use Cases',
+        file: 'model/behavioral.yaml',
+        key: 'useCases',
+        columns: [
+          { header: 'Name',       field: 'name',              filterable: 'text',   sortable: true },
+          { header: 'ID',         field: 'id',       cls: 'id', filterable: 'text', sortable: true },
+          { header: 'Owner',      field: 'ownerRef', cls: 'id', filterable: 'select', sortable: true },
+          { header: 'Actors',     field: 'actorRefs',           filterable: false,    sortable: false, render: refList },
+          { header: 'Extends',    field: 'extendRefs',          filterable: false,    sortable: false, render: refList },
+          { header: 'Includes',   field: 'includeRefs',         filterable: false,    sortable: false, render: refList },
+          { header: 'Traces To',  field: 'traceRefs',           filterable: false,    sortable: false, render: refList },
+          { header: 'Documentation', field: 'documentation', cls: 'doc', filterable: 'text', sortable: true },
+        ]
       }
     ];
 
