@@ -35,7 +35,8 @@
     }
     .panel .meta { color: var(--muted); font-size: .8rem; padding: .5rem .9rem 0 .9rem; }
     .diagram-wrap { padding: .5rem; overflow-x: auto; }
-    .mermaid { min-width: 700px; }
+    .diagram { min-width: 700px; }
+    .diagram svg { height: auto; }
     #status { color: var(--muted); margin: .5rem 0 1rem 0; }
     #error { color: #cf222e; white-space: pre-wrap; display: none; }
   </style>
@@ -56,19 +57,19 @@
     <section class="panel">
       <h2>Use Case Overview</h2>
       <div class="meta">MVP-focused actor/use-case map (future elements included but visually marked)</div>
-      <div class="diagram-wrap"><pre class="mermaid" id="d-usecase"></pre></div>
+      <div class="diagram-wrap"><div class="diagram" id="d-usecase"></div></div>
     </section>
 
     <section class="panel">
       <h2>Logical Context (MVP Single-User)</h2>
       <div class="meta">Context block and top-level logical decomposition</div>
-      <div class="diagram-wrap"><pre class="mermaid" id="d-logical"></pre></div>
+      <div class="diagram-wrap"><div class="diagram" id="d-logical"></div></div>
     </section>
 
     <section class="panel">
       <h2>Requirement ↔ Use Case Trace (Sample)</h2>
       <div class="meta">Trace refs from behavioral use cases to requirements</div>
-      <div class="diagram-wrap"><pre class="mermaid" id="d-trace"></pre></div>
+      <div class="diagram-wrap"><div class="diagram" id="d-trace"></div></div>
     </section>
   </div>
 
@@ -238,6 +239,14 @@
       return lines.join('\n');
     }
 
+    async function renderInto(elementId, definition, key) {
+      const target = document.getElementById(elementId);
+      const renderId = `m_${key}_${Date.now()}`;
+      const { svg, bindFunctions } = await window.mermaid.render(renderId, definition);
+      target.innerHTML = svg;
+      if (bindFunctions) bindFunctions(target);
+    }
+
     async function render() {
       statusEl.textContent = 'Loading YAML and rendering diagrams…';
       errorEl.style.display = 'none';
@@ -250,22 +259,17 @@
           fetchYaml(files.requirements),
         ]);
 
-        document.getElementById('d-usecase').textContent = buildUseCaseDiagram(behavioral || {});
-        document.getElementById('d-logical').textContent = buildLogicalDiagram(logical || {});
-        document.getElementById('d-trace').textContent = buildTraceDiagram(behavioral || {}, requirements || {});
-
-        await new Promise(resolve => setTimeout(resolve, 0));
-
         if (!window.mermaid) {
           throw new Error('Mermaid library did not load (possibly blocked by extension/privacy setting).');
         }
 
-        // Ensure rerenders work by clearing prior processed markers.
-        document.querySelectorAll('.mermaid').forEach(el => {
-          el.removeAttribute('data-processed');
-        });
+        const usecaseDef = buildUseCaseDiagram(behavioral || {});
+        const logicalDef = buildLogicalDiagram(logical || {});
+        const traceDef = buildTraceDiagram(behavioral || {}, requirements || {});
 
-        await window.mermaid.run({ querySelector: '.mermaid' });
+        await renderInto('d-usecase', usecaseDef, 'usecase');
+        await renderInto('d-logical', logicalDef, 'logical');
+        await renderInto('d-trace', traceDef, 'trace');
 
         gridEl.style.display = 'grid';
         statusEl.textContent = 'Live diagrams rendered from latest YAML.';
