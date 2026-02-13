@@ -237,7 +237,7 @@ useCases:
     traceRefs: [src_design_doc]
 
   - id: uc_learn_language
-    name: Learn a Language
+    name: Learn Language
     documentation: >
       Core learning mission integrating vocabulary, grammar, skills practice,
       and long-term retention across stories.
@@ -304,7 +304,7 @@ useCases:
     traceRefs: []
 
   - id: uc_review_srs_session
-    name: Review Scheduled Items (SRS Session)
+    name: Review Scheduled Items
     documentation: >
       Run a dedicated spaced-repetition review session independent from story
       gameplay, using due-item scheduling and performance updates.
@@ -324,7 +324,7 @@ useCases:
     traceRefs: [req_grammar_progressive]
 
   - id: uc_manage_learner_profile
-    name: Manage Learner Profile & Preferences
+    name: Manage Learner Profile and Preferences
     documentation: >
       Configure learner-specific settings such as source/target language,
       learning goals, pacing preferences, and content boundaries.
@@ -344,7 +344,7 @@ useCases:
     traceRefs: []
 
   - id: uc_play_rpg
-    name: Play an RPG
+    name: Play RPG Story
     documentation: >
       Run RPG story gameplay with AI-supported narrative generation and choices.
     ownerRef: pkg_behavioral
@@ -417,7 +417,7 @@ useCases:
     traceRefs: []
 
   - id: uc_use_instructor_mode
-    name: Use Instructor Mode (Break Character)
+    name: Use Instructor Mode
     documentation: >
       Temporarily break RPG character to ask meta-level learning questions in
       plain language, then return to story mode.
@@ -506,7 +506,7 @@ useCases:
     traceRefs: [src_design_doc]
 
   - id: uc_maintain_system
-    name: Maintain the System
+    name: Maintain System
     documentation: >
       Operate and maintain production reliability, deploy changes, and manage data.
     ownerRef: pkg_behavioral
@@ -608,7 +608,7 @@ useCases:
     traceRefs: []
 
   - id: uc_test_system
-    name: Test the System
+    name: Test System
     documentation: >
       Plan and execute a blended manual/automated test approach with defect
       management and fix verification.
