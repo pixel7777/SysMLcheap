@@ -3,166 +3,594 @@
 # ============================================================================
 
 actors:
-  # ── System of Interest ───────────────────────────────────────────────────
   - id: act_lqs
     name: Language Questing System
     documentation: >
       The system of interest (SOI) — the application under development.
-      A software-only, web-based language learning platform that combines
-      AI-driven TTRPG gameplay with SRS vocabulary review and progressive
-      grammar instruction. All use cases in this model represent uses of
-      this system. Maps to the system context block in the logical
-      architecture.
+      All use cases in this model represent uses of this system and must be
+      associated with this actor by modeling convention.
     ownerRef: pkg_behavioral
     status: mvp
-    useCaseRefs: []  # TBD — will be populated when use cases are defined
-    realizedByRefs: []  # TBD — system context block
+    useCaseRefs:
+      - uc_access_application
+      - uc_authenticate_users
+      - uc_learn_language
+      - uc_build_vocabulary
+      - uc_learn_grammar
+      - uc_learn_pronunciation
+      - uc_practice_receptive_skills
+      - uc_practice_productive_skills
+      - uc_retain_progress_across_stories
+      - uc_play_rpg
+      - uc_start_new_story
+      - uc_continue_existing_story
+      - uc_manage_story_history
+      - uc_delete_story
+      - uc_manage_story_character
+      - uc_manage_story_settings
+      - uc_understand_learning_progress
+      - uc_view_grammar_progress
+      - uc_view_vocabulary_progress
+      - uc_receive_progress_rewards
+      - uc_manage_evolving_context
+      - uc_generate_sales
+      - uc_manage_payments
+      - uc_maintain_system
+      - uc_publish_new_version
+      - uc_monitor_system_health
+      - uc_manage_application_data
+      - uc_manage_ai_provider_config
+      - uc_protect_users_from_security_threats
+      - uc_monitor_for_threats
+      - uc_harden_system_security
+      - uc_respond_to_security_incidents
+      - uc_recover_from_security_incidents
+      - uc_test_system
+      - uc_plan_tests
+      - uc_execute_automated_tests
+      - uc_execute_manual_tests
+      - uc_manage_discovered_faults
+      - uc_verify_fixes
+    realizedByRefs: []
 
-  # ── Human Actors ─────────────────────────────────────────────────────────
   - id: act_heidi
     name: Heidi
     documentation: >
-      The initial user of the Language Questing System. A native English
-      speaker (L1=English) with Croatian as her target language (L2=Croatian).
-      Use cases associated with Heidi represent a set of defaults specific
-      to her as the first user: language pair, content preferences, genre
-      preferences, and learning goals. These defaults are hardcoded for the
-      Heidi-only MVP and are intended to later become configurable variables
-      populated by application functions that solicit this information from
-      the Learner actor.
+      Initial user with fixed defaults (L1 English, L2 Croatian) for
+      Heidi-only MVP behavior and content preferences.
     ownerRef: pkg_behavioral
     status: mvp
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_access_application
+      - uc_authenticate_users
+      - uc_learn_language
+      - uc_play_rpg
+      - uc_understand_learning_progress
     realizedByRefs: []
 
   - id: act_learner
     name: Learner
     documentation: >
-      A paying user of the Language Questing System who may have different
-      preferences from Heidi. May have a different native language (L1),
-      different target language (though Croatian is the initial supported
-      L2), different content tolerances, and different learning goals.
-      Learner use cases include all configuration and personalization
-      functions that are hardcoded defaults in the Heidi-only MVP.
-      No generalization relationship to Heidi — these are distinct actors
-      with independently maintained use case associations.
+      Paying user with potentially different preferences and profile settings.
+      Kept distinct from Heidi (no actor generalization).
     ownerRef: pkg_behavioral
     status: future
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_access_application
+      - uc_authenticate_users
+      - uc_learn_language
+      - uc_play_rpg
+      - uc_understand_learning_progress
+      - uc_manage_payments
+    realizedByRefs: []
+
+  - id: act_developer
+    name: Developer
+    documentation: >
+      Heidi in her business/development role, focused on profitable operation,
+      validation quality, and system evolution.
+    ownerRef: pkg_behavioral
+    status: mvp
+    useCaseRefs:
+      - uc_generate_sales
+      - uc_manage_payments
+      - uc_test_system
     realizedByRefs: []
 
   - id: act_tester
     name: Tester
     documentation: >
-      Validates system behavior against requirements. Executes test cases,
-      reports defects, and verifies fixes. For the Heidi-only MVP this role
-      is performed by Heidi, but the actor is modeled distinctly because the
-      concerns (testing vs. learning) are different and drive different use
-      cases and interface requirements.
+      Executes manual and automated testing, reports faults, and verifies fixes.
     ownerRef: pkg_behavioral
     status: mvp
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_test_system
+    realizedByRefs: []
+
+  - id: act_test_bench
+    name: Test Bench
+    documentation: >
+      External testing infrastructure (CI runners, harnesses, mocks, fixtures)
+      used to execute automated tests against the system.
+    ownerRef: pkg_behavioral
+    status: mvp
+    useCaseRefs:
+      - uc_execute_automated_tests
+      - uc_verify_fixes
     realizedByRefs: []
 
   - id: act_maintainer
     name: Maintainer
     documentation: >
-      Administers the deployed Language Questing System. Responsible for
-      deployment, updates, monitoring, log review, data management, backup,
-      and incident response. For the Heidi-only MVP this role is performed
-      by Heidi, but it is modeled distinctly because maintenance activities
-      drive their own use cases, requirements, and tooling needs.
+      Operates and maintains deployed environments: deployment, monitoring,
+      data management, and provider configuration.
     ownerRef: pkg_behavioral
     status: mvp
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_maintain_system
     realizedByRefs: []
 
   - id: act_security_specialist
     name: Security Specialist
     documentation: >
-      Audits and hardens the Language Questing System. Reviews
-      authentication, authorization, data protection, and vulnerability
-      posture. Not required for the Heidi-only MVP but essential before
-      the system accepts payment or stores other users' data.
+      Leads threat monitoring, hardening, incident response, and recovery.
     ownerRef: pkg_behavioral
     status: future
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_protect_users_from_security_threats
     realizedByRefs: []
 
-  # ── External System Actors ──────────────────────────────────────────────
   - id: act_ai_provider
     name: AI Provider
     documentation: >
-      An external provider of AI services whose usage is procured for the
-      Language Questing System. Accessed via API using a token-based
-      authentication model (e.g., Claude API, OpenAI API). This actor
-      represents ONLY external API-based AI interactions. AI-driven
-      capabilities that are internal to the system (e.g., app-hosted LLMs,
-      local inference) are modeled as components of the Language Questing
-      System itself, not as interactions with this actor.
+      External API-based AI service. Internal AI capabilities are modeled as
+      parts of the Language Questing System, not this actor.
     ownerRef: pkg_behavioral
     status: mvp
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_learn_language
+      - uc_play_rpg
+      - uc_understand_learning_progress
+      - uc_manage_evolving_context
+      - uc_manage_ai_provider_config
     realizedByRefs: []
 
   - id: act_host_platform
     name: Host Platform
     documentation: >
-      The infrastructure platform where the Language Questing System is
-      deployed. Could be a cloud provider (e.g., AWS), a VPS, or another
-      hosting solution. Provides compute, storage, networking, and
-      potentially managed services (databases, CDN, etc.). The Language
-      Questing System is software-only; all hardware and infrastructure
-      concerns are delegated to this actor, which negates the need for
-      internal hardware components in the SOI model.
+      External deployment platform providing infrastructure and runtime services.
     ownerRef: pkg_behavioral
     status: mvp
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_access_application
+      - uc_protect_users_from_security_threats
+      - uc_publish_new_version
+      - uc_monitor_system_health
+      - uc_manage_application_data
     realizedByRefs: []
 
   - id: act_payment_provider
     name: Payment Provider
     documentation: >
-      An external payment processing service (e.g., Stripe, PayPal) that
-      handles monetary transactions for the Language Questing System.
-      Manages subscription billing, payment method storage, refunds, and
-      transaction records. Required only when the system begins accepting
-      paying Learner users.
+      External payment processing service for subscriptions and billing.
     ownerRef: pkg_behavioral
     status: future
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_manage_payments
     realizedByRefs: []
 
   - id: act_advertising_platform
     name: Advertising Platform
     documentation: >
-      An external advertising network that serves ads within the Language
-      Questing System as a monetization channel. Future-only — represents
-      a potential revenue stream alternative or supplement to direct
-      user payment.
+      External ad network used for future revenue generation.
     ownerRef: pkg_behavioral
     status: future
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_generate_sales
     realizedByRefs: []
 
   - id: act_auth_provider
     name: Authentication Provider
     documentation: >
-      An external identity and authentication service (e.g., OAuth provider,
-      Auth0, Firebase Auth) that manages user identity, login, and session
-      tokens for the Language Questing System. Not required for the
-      Heidi-only MVP (simple authentication sufficient) but essential for
-      multi-user operation with the Learner actor.
+      External identity provider for user authentication/session services.
     ownerRef: pkg_behavioral
     status: future
-    useCaseRefs: []  # TBD
+    useCaseRefs:
+      - uc_authenticate_users
+      - uc_protect_users_from_security_threats
     realizedByRefs: []
 
-# ============================================================================
-# USE CASES — To be defined in next working session
-# ============================================================================
-# Existing use cases temporarily removed during actor restructuring.
-# They will be rebuilt with proper actor associations and status tags.
-# Known validation gap: actors currently have no use case associations.
+useCases:
+  - id: uc_access_application
+    name: Access Application
+    documentation: >
+      User accesses the deployed web application via the host platform.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner, act_host_platform]
+    traceRefs: []
 
-useCases: []
+  - id: uc_authenticate_users
+    name: Authenticate Users
+    documentation: >
+      Validate user identity and create authenticated sessions.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs, act_heidi, act_learner, act_auth_provider]
+    traceRefs: []
+
+  - id: uc_learn_language
+    name: Learn a Language
+    documentation: >
+      Core learning mission integrating vocabulary, grammar, skills practice,
+      and long-term retention across stories.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner, act_ai_provider]
+    includeRefs:
+      - uc_build_vocabulary
+      - uc_learn_grammar
+      - uc_learn_pronunciation
+      - uc_practice_receptive_skills
+      - uc_practice_productive_skills
+      - uc_retain_progress_across_stories
+    traceRefs: []
+
+  - id: uc_build_vocabulary
+    name: Build Vocabulary
+    documentation: >
+      Introduce, reinforce, and assess vocabulary through story context and SRS.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_learn_grammar
+    name: Learn Grammar
+    documentation: >
+      Progressively teach and assess grammar rules and inflection patterns.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_learn_pronunciation
+    name: Learn Pronunciation
+    documentation: >
+      Practice and improve pronunciation, stress, and phonetic accuracy.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_practice_receptive_skills
+    name: Practice Receptive Skills
+    documentation: >
+      Improve comprehension (reading now; listening in future) and language
+      recognition accuracy.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_practice_productive_skills
+    name: Practice Productive Skills
+    documentation: >
+      Improve language production (writing now; speaking in future), emphasizing
+      generated Croatian output over recognition-only interactions.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_retain_progress_across_stories
+    name: Retain Language Progress Across Stories
+    documentation: >
+      Preserve learner language progress when stories are changed or deleted.
+      Story-specific character and narrative state may reset independently.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_play_rpg
+    name: Play an RPG
+    documentation: >
+      Run RPG story gameplay with AI-supported narrative generation and choices.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner, act_ai_provider]
+    includeRefs:
+      - uc_start_new_story
+      - uc_continue_existing_story
+      - uc_manage_story_history
+      - uc_delete_story
+      - uc_manage_story_character
+      - uc_manage_story_settings
+    traceRefs: []
+
+  - id: uc_start_new_story
+    name: Start a New Story
+    documentation: >
+      Initialize a new story world and character context from setup inputs.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_continue_existing_story
+    name: Continue an Existing Story
+    documentation: >
+      Resume an existing story with its persisted narrative and character state.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_manage_story_history
+    name: Manage Story History
+    documentation: >
+      Read and write story history entries to maintain coherent continuity.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_delete_story
+    name: Delete a Story
+    documentation: >
+      Delete a story and its narrative artifacts without deleting persistent
+      language learning information.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_manage_story_character
+    name: Manage Story Character
+    documentation: >
+      View/update story-specific character profile, stats, and inventory.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_manage_story_settings
+    name: Manage Story Settings
+    documentation: >
+      Configure story-level options including tone, content boundaries,
+      and difficulty preferences.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_understand_learning_progress
+    name: Understand Learning Progress
+    documentation: >
+      Review grammar/vocabulary progression and reward milestones.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_heidi, act_learner, act_ai_provider]
+    includeRefs:
+      - uc_view_grammar_progress
+      - uc_view_vocabulary_progress
+      - uc_receive_progress_rewards
+    traceRefs: []
+
+  - id: uc_view_grammar_progress
+    name: View Grammar Progress
+    documentation: >
+      Display grammar competency status and progression by concept.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_view_vocabulary_progress
+    name: View Vocabulary Progress
+    documentation: >
+      Display vocabulary mastery levels and review readiness indicators.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_receive_progress_rewards
+    name: Receive Progress Rewards
+    documentation: >
+      Award in-app rewards for learning milestones and sustained engagement.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_manage_evolving_context
+    name: Manage Evolving Context
+    documentation: >
+      Maintain evolving prompt/context state for AI interactions across sessions.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_ai_provider]
+    traceRefs: []
+
+  - id: uc_generate_sales
+    name: Generate Sales
+    documentation: >
+      Support future monetization via ads and conversion flows.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs, act_developer, act_advertising_platform]
+    traceRefs: []
+
+  - id: uc_manage_payments
+    name: Manage Payments
+    documentation: >
+      Handle subscription charges, renewals, payment failures, and refunds.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs, act_learner, act_developer, act_payment_provider]
+    traceRefs: []
+
+  - id: uc_maintain_system
+    name: Maintain the System
+    documentation: >
+      Operate and maintain production reliability, deploy changes, and manage data.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_maintainer]
+    includeRefs:
+      - uc_publish_new_version
+      - uc_monitor_system_health
+      - uc_manage_application_data
+      - uc_manage_ai_provider_config
+    traceRefs: []
+
+  - id: uc_publish_new_version
+    name: Publish New Version
+    documentation: >
+      Deploy and validate a new software version in hosted environments.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_host_platform]
+    traceRefs: []
+
+  - id: uc_monitor_system_health
+    name: Monitor System Health
+    documentation: >
+      Observe uptime, errors, resource usage, and provider costs/latency.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_host_platform]
+    traceRefs: []
+
+  - id: uc_manage_application_data
+    name: Manage Application Data
+    documentation: >
+      Manage backups, retention, restores, and data integrity controls.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_host_platform]
+    traceRefs: []
+
+  - id: uc_manage_ai_provider_config
+    name: Manage AI Provider Configuration
+    documentation: >
+      Configure models, API keys, rate limits, and AI service failover options.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_ai_provider]
+    traceRefs: []
+
+  - id: uc_protect_users_from_security_threats
+    name: Protect Users from Security Threats
+    documentation: >
+      Identify, prevent, respond to, and recover from threats impacting users.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs, act_security_specialist, act_auth_provider, act_host_platform]
+    includeRefs:
+      - uc_monitor_for_threats
+      - uc_harden_system_security
+      - uc_respond_to_security_incidents
+      - uc_recover_from_security_incidents
+    traceRefs: []
+
+  - id: uc_monitor_for_threats
+    name: Monitor for Threats
+    documentation: >
+      Detect suspicious behavior, abuse patterns, and attack indicators.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_harden_system_security
+    name: Harden System Security
+    documentation: >
+      Proactively improve controls: patching, config hardening, auth defenses,
+      and dependency vulnerability remediation.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_respond_to_security_incidents
+    name: Respond to Security Incidents
+    documentation: >
+      Triage and contain active incidents, communicate impact, and preserve
+      forensic evidence.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_recover_from_security_incidents
+    name: Recover from Security Incidents
+    documentation: >
+      Restore secure operations and data integrity after incident containment.
+    ownerRef: pkg_behavioral
+    status: future
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_test_system
+    name: Test the System
+    documentation: >
+      Plan and execute a blended manual/automated test approach with defect
+      management and fix verification.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_tester, act_developer]
+    includeRefs:
+      - uc_plan_tests
+      - uc_execute_automated_tests
+      - uc_execute_manual_tests
+      - uc_manage_discovered_faults
+      - uc_verify_fixes
+    traceRefs: []
+
+  - id: uc_plan_tests
+    name: Plan Tests
+    documentation: >
+      Define test objectives, cases, coverage targets, and pass/fail criteria.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_execute_automated_tests
+    name: Execute Automated Tests
+    documentation: >
+      Run automated test suites through CI/test harnesses and collect results.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_test_bench]
+    traceRefs: []
+
+  - id: uc_execute_manual_tests
+    name: Execute Manual Tests
+    documentation: >
+      Execute exploratory and scripted manual tests for UX and learning quality.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_manage_discovered_faults
+    name: Manage Discovered Faults
+    documentation: >
+      Log, triage, prioritize, and track discovered faults to closure.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs]
+    traceRefs: []
+
+  - id: uc_verify_fixes
+    name: Verify Fixes
+    documentation: >
+      Re-test addressed faults to confirm closure and prevent regressions.
+    ownerRef: pkg_behavioral
+    status: mvp
+    actorRefs: [act_lqs, act_test_bench]
+    traceRefs: []
