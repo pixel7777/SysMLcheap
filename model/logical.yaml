@@ -1,66 +1,141 @@
 # ============================================================================
-# LOGICAL ARCHITECTURE — System Context & Logical Blocks (sample)
+# LOGICAL ARCHITECTURE — System Context & Logical Blocks
+# Variant in focus: MVP Single-User
 # ============================================================================
 
 blocks:
-  # --- Logical System Context ---
-  - id: blk_log_context
-    name: Croatian Learning App Context
+  # --- Logical System Context (MVP Single-User) ---
+  - id: blk_log_context_mvp_single_user
+    name: Language Quest System Context (MVP Single-User)
     documentation: >
-      Top-level logical system context. Contains the learning app system
-      and its external actors as part properties.
+      Top-level logical context for the MVP single-user configuration.
+      Contains the system-of-interest and required external entities that
+      interact through defined logical interfaces.
     stereotype: context
     ownerRef: pkg_logical
+    status: mvp
     parts:
-      - id: pp_log_system
-        name: learning app
-        typeRef: blk_log_system
-        realizationRefs: [uc_play_session, uc_review_vocab, uc_session_zero, uc_manage_codex, uc_view_progress]
-      - id: pp_log_learner
-        name: learner
-        typeRef: blk_log_learner_ext
-        realizationRefs: [act_learner]
-      - id: pp_log_ai
-        name: ai provider
-        typeRef: blk_log_ai_ext
+      - id: pp_log_system_mvp_single_user
+        name: language quest system (mvp)
+        typeRef: blk_log_system_mvp_single_user
+        realizationRefs:
+          - uc_access_application
+          - uc_learn_language
+          - uc_review_srs_session
+          - uc_request_learning_explanation
+          - uc_play_rpg
+          - uc_understand_learning_progress
+          - uc_maintain_system
+          - uc_test_system
+
+      # Option A: separate human external blocks by interface intent
+      - id: pp_log_ext_learning_user
+        name: learning user external
+        typeRef: blk_log_ext_learning_user
+        realizationRefs: [act_heidi]
+
+      - id: pp_log_ext_operations_user
+        name: operations user external
+        typeRef: blk_log_ext_operations_user
+        realizationRefs: [act_developer, act_tester, act_maintainer]
+
+      - id: pp_log_ext_ai_provider
+        name: ai provider external
+        typeRef: blk_log_ext_ai_provider
         realizationRefs: [act_ai_provider]
+
+      - id: pp_log_ext_host_platform
+        name: host platform external
+        typeRef: blk_log_ext_host_platform
+        realizationRefs: [act_host_platform]
+
+      - id: pp_log_ext_test_bench
+        name: test bench external
+        typeRef: blk_log_ext_test_bench
+        realizationRefs: [act_test_bench]
+
     ports: []  # Context blocks may not own ports
 
-  # --- External Blocks ---
-  - id: blk_log_learner_ext
-    name: Learner
+  # --- External Blocks (MVP) ---
+  - id: blk_log_ext_learning_user
+    name: Learning User External
     documentation: >
-      External block representing the human learner interacting with
-      the system via a web browser.
+      Human interacting with learner-facing gameplay and learning interfaces.
+      Represents user-to-system interaction needs, not implementation technology.
     stereotype: external
     ownerRef: pkg_logical
+    status: mvp
     ports:
-      - id: port_learner_ui
-        name: ui
-        typeRef: ib_log_user_interaction
+      - id: port_ext_learning_ui
+        name: learning ui
+        typeRef: ib_log_learning_ui
         conjugated: false
 
-  - id: blk_log_ai_ext
-    name: AI Provider
+  - id: blk_log_ext_operations_user
+    name: Operations User External
     documentation: >
-      External block representing the AI language model service.
-      Receives prompts and returns generated content.
+      Human performing maintenance, testing, and administrative interactions
+      via operations-focused interfaces.
     stereotype: external
     ownerRef: pkg_logical
+    status: mvp
     ports:
-      - id: port_ai_api
-        name: api
+      - id: port_ext_ops_ui
+        name: operations ui
+        typeRef: ib_log_operations_ui
+        conjugated: false
+
+  - id: blk_log_ext_ai_provider
+    name: AI Provider External
+    documentation: >
+      External AI model service used for generation and analysis tasks.
+    stereotype: external
+    ownerRef: pkg_logical
+    status: mvp
+    ports:
+      - id: port_ext_ai_api
+        name: ai api
         typeRef: ib_log_ai_interface
         conjugated: true
 
-  # --- Logical System Block ---
-  - id: blk_log_system
-    name: Learning App
+  - id: blk_log_ext_host_platform
+    name: Host Platform External
     documentation: >
-      Top-level logical system block. Decomposes into the major
-      functional subsystems of the Croatian learning application.
+      External hosting/runtime platform providing deployment and operational
+      platform services to the system.
+    stereotype: external
+    ownerRef: pkg_logical
+    status: mvp
+    ports:
+      - id: port_ext_platform_services
+        name: platform services
+        typeRef: ib_log_platform_services
+        conjugated: true
+
+  - id: blk_log_ext_test_bench
+    name: Test Bench External
+    documentation: >
+      External automated test infrastructure that invokes test execution and
+      receives test outcomes.
+    stereotype: external
+    ownerRef: pkg_logical
+    status: mvp
+    ports:
+      - id: port_ext_test_harness
+        name: test harness
+        typeRef: ib_log_test_harness
+        conjugated: true
+
+  # --- Logical System Block (MVP Single-User) ---
+  - id: blk_log_system_mvp_single_user
+    name: Language Quest System (MVP Single-User)
+    documentation: >
+      Top-level logical SOI for the MVP single-user configuration.
+      Decomposes into major logical subsystems and exposes external
+      interfaces required for MVP mission outcomes.
     stereotype: logical
     ownerRef: pkg_logical
+    status: mvp
     parts:
       - id: pp_game_engine
         name: game engine
@@ -75,13 +150,25 @@ blocks:
         name: user manager
         typeRef: blk_log_user_manager
     ports:
-      - id: port_sys_ui
-        name: ui
-        typeRef: ib_log_user_interaction
+      - id: port_sys_learning_ui
+        name: learning ui
+        typeRef: ib_log_learning_ui
+        conjugated: true
+      - id: port_sys_operations_ui
+        name: operations ui
+        typeRef: ib_log_operations_ui
         conjugated: true
       - id: port_sys_ai
         name: ai
         typeRef: ib_log_ai_interface
+        conjugated: false
+      - id: port_sys_platform_services
+        name: platform services
+        typeRef: ib_log_platform_services
+        conjugated: false
+      - id: port_sys_test_harness
+        name: test harness
+        typeRef: ib_log_test_harness
         conjugated: false
 
   # --- Logical Subsystem Blocks ---
@@ -93,6 +180,7 @@ blocks:
       narrative interaction loop.
     stereotype: logical
     ownerRef: pkg_logical
+    status: mvp
     ports:
       - id: port_ge_lang
         name: language services
@@ -111,6 +199,7 @@ blocks:
       and learner proficiency assessment.
     stereotype: logical
     ownerRef: pkg_logical
+    status: mvp
     ports:
       - id: port_le_svc
         name: language services
@@ -125,6 +214,7 @@ blocks:
       management, and response parsing.
     stereotype: logical
     ownerRef: pkg_logical
+    status: mvp
     ports:
       - id: port_ao_ai
         name: ai api
@@ -134,33 +224,48 @@ blocks:
   - id: blk_log_user_manager
     name: User Manager
     documentation: >
-      Manages user accounts, authentication, preferences, and
-      cross-story persistent data (language stats, story library).
+      Manages user profile and persistent user-linked data needed in MVP
+      single-user operation.
     stereotype: logical
     ownerRef: pkg_logical
+    status: mvp
 
 # ============================================================================
 # INTERFACE BLOCKS & SIGNALS — Logical interfaces
 # ============================================================================
 
 interfaceBlocks:
-  - id: ib_log_user_interaction
-    name: User Interaction
+  - id: ib_log_learning_ui
+    name: Learning UI
     stereotype: logical
     ownerRef: pkg_logical
     flowProperties:
-      - id: fp_ui_player_input
+      - id: fp_lui_player_input
         name: player input
         direction: inout
         typeRef: sig_player_input
-      - id: fp_ui_narrative
+      - id: fp_lui_narrative
         name: narrative output
         direction: out
         typeRef: sig_narrative_output
-      - id: fp_ui_mc_options
+      - id: fp_lui_mc_options
         name: multiple choice options
         direction: out
         typeRef: sig_mc_options
+
+  - id: ib_log_operations_ui
+    name: Operations UI
+    stereotype: logical
+    ownerRef: pkg_logical
+    flowProperties:
+      - id: fp_oui_ops_command
+        name: operations command
+        direction: inout
+        typeRef: sig_operations_command
+      - id: fp_oui_ops_status
+        name: operations status
+        direction: out
+        typeRef: sig_operations_status
 
   - id: ib_log_ai_interface
     name: AI Interface
@@ -175,6 +280,34 @@ interfaceBlocks:
         name: response
         direction: inout
         typeRef: sig_ai_response
+
+  - id: ib_log_platform_services
+    name: Platform Services
+    stereotype: logical
+    ownerRef: pkg_logical
+    flowProperties:
+      - id: fp_ps_deploy_request
+        name: deploy request
+        direction: out
+        typeRef: sig_deploy_request
+      - id: fp_ps_runtime_telemetry
+        name: runtime telemetry
+        direction: inout
+        typeRef: sig_runtime_telemetry
+
+  - id: ib_log_test_harness
+    name: Test Harness
+    stereotype: logical
+    ownerRef: pkg_logical
+    flowProperties:
+      - id: fp_th_test_request
+        name: test request
+        direction: out
+        typeRef: sig_test_request
+      - id: fp_th_test_result
+        name: test result
+        direction: inout
+        typeRef: sig_test_result
 
   - id: ib_log_language_services
     name: Language Services
@@ -197,6 +330,7 @@ signals:
       Input from the learner — either a multiple choice selection
       or free-text Croatian input. Includes metadata about input type.
     ownerRef: pkg_logical
+    status: mvp
 
   - id: sig_narrative_output
     name: Narrative Output
@@ -205,6 +339,7 @@ signals:
       to the learner. May include scene descriptions, NPC dialogue,
       and action results.
     ownerRef: pkg_logical
+    status: mvp
 
   - id: sig_mc_options
     name: Multiple Choice Options
@@ -212,6 +347,23 @@ signals:
       A set of Croatian-language options for the learner to choose from.
       Always includes a free-text alternative option.
     ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_operations_command
+    name: Operations Command
+    documentation: >
+      Operational command/request issued by operations user for maintenance,
+      testing control, configuration, or diagnostics.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_operations_status
+    name: Operations Status
+    documentation: >
+      Operational response, status, or diagnostic information returned to
+      operations user from system operations interfaces.
+    ownerRef: pkg_logical
+    status: mvp
 
   - id: sig_ai_prompt
     name: AI Prompt
@@ -220,6 +372,7 @@ signals:
       context window (NovelCrafter-style), conversation history,
       and current learner proficiency data.
     ownerRef: pkg_logical
+    status: mvp
 
   - id: sig_ai_response
     name: AI Response
@@ -227,6 +380,37 @@ signals:
       Raw response from the AI provider. Parsed into structured
       narrative content, vocabulary annotations, and assessment data.
     ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_deploy_request
+    name: Deploy Request
+    documentation: >
+      Request from system operations interface to platform for deployment,
+      release, or operational control action.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_runtime_telemetry
+    name: Runtime Telemetry
+    documentation: >
+      Platform-provided telemetry regarding application health, errors,
+      resource usage, and runtime events.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_test_request
+    name: Test Request
+    documentation: >
+      Request to execute automated test suites, scenarios, or verification runs.
+    ownerRef: pkg_logical
+    status: mvp
+
+  - id: sig_test_result
+    name: Test Result
+    documentation: >
+      Test execution outcomes including pass/fail status, evidence, and logs.
+    ownerRef: pkg_logical
+    status: mvp
 
   - id: sig_vocab_query
     name: Vocabulary Query
@@ -234,6 +418,7 @@ signals:
       Request to the language engine for vocabulary data — current mastery
       levels, SRS-due items, or assessment of a specific word usage.
     ownerRef: pkg_logical
+    status: mvp
 
   - id: sig_assessment_result
     name: Assessment Result
@@ -241,3 +426,4 @@ signals:
       Result of evaluating a learner's response. Includes updated mastery
       levels, grammar exposure updates, and game point awards.
     ownerRef: pkg_logical
+    status: mvp
