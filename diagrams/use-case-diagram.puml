@@ -1,43 +1,189 @@
 @startuml Use Case Diagram
-' ============================================================================
-' ACTORS ONLY — Use cases to be defined in next working session
-' Actors shown with status tags; use cases temporarily cleared
-' ============================================================================
-
 left to right direction
 skinparam packageStyle rectangle
-skinparam actorStyle awesome
 
-' ── System of Interest ──
-actor "Language Questing\nSystem" as act_lqs #LightBlue
+actor "Language Questing System" as act_lqs
+actor "Heidi" as act_heidi
+actor "Learner" as act_learner
+actor "Developer" as act_developer
+actor "Tester" as act_tester
+actor "Test Bench" as act_test_bench
+actor "Maintainer" as act_maintainer
+actor "Security Specialist" as act_security_specialist
+actor "AI Provider" as act_ai_provider
+actor "Host Platform" as act_host_platform
+actor "Payment Provider" as act_payment_provider
+actor "Advertising Platform" as act_advertising_platform
+actor "Authentication Provider" as act_auth_provider
 
-' ── Human Actors (MVP) ──
-actor "Heidi" as act_heidi #PaleGreen
-actor "Tester" as act_tester #PaleGreen
-actor "Maintainer" as act_maintainer #PaleGreen
-
-' ── Human Actors (Future) ──
-actor "Learner" as act_learner #LightGoldenRodYellow
-actor "Security\nSpecialist" as act_security_specialist #LightGoldenRodYellow
-
-' ── External System Actors (MVP) ──
-actor "AI Provider" as act_ai_provider #PaleGreen
-actor "Host Platform" as act_host_platform #PaleGreen
-
-' ── External System Actors (Future) ──
-actor "Payment\nProvider" as act_payment_provider #LightGoldenRodYellow
-actor "Advertising\nPlatform" as act_advertising_platform #LightGoldenRodYellow
-actor "Authentication\nProvider" as act_auth_provider #LightGoldenRodYellow
-
-rectangle "Language Questing System" {
-  ' Use cases TBD
+rectangle "Croatian Learning App" {
+  usecase "Access Application" as uc_access_application
+  usecase "Authenticate Users" as uc_authenticate_users
+  usecase "Learn Language" as uc_learn_language
+  usecase "Build Vocabulary" as uc_build_vocabulary
+  usecase "Learn Grammar" as uc_learn_grammar
+  usecase "Learn Pronunciation" as uc_learn_pronunciation
+  usecase "Practice Receptive Skills" as uc_practice_receptive_skills
+  usecase "Practice Productive Skills" as uc_practice_productive_skills
+  usecase "Review Scheduled Items" as uc_review_srs_session
+  usecase "Request Learning Explanation" as uc_request_learning_explanation
+  usecase "Manage Learner Profile and Preferences" as uc_manage_learner_profile
+  usecase "Retain Language Progress Across Stories" as uc_retain_progress_across_stories
+  usecase "Play RPG Story" as uc_play_rpg
+  usecase "Start a New Story" as uc_start_new_story
+  usecase "Continue an Existing Story" as uc_continue_existing_story
+  usecase "Manage Story History" as uc_manage_story_history
+  usecase "Delete a Story" as uc_delete_story
+  usecase "Manage Story Character" as uc_manage_story_character
+  usecase "Manage Story Settings" as uc_manage_story_settings
+  usecase "Use Instructor Mode" as uc_use_instructor_mode
+  usecase "Understand Learning Progress" as uc_understand_learning_progress
+  usecase "View Grammar Progress" as uc_view_grammar_progress
+  usecase "View Vocabulary Progress" as uc_view_vocabulary_progress
+  usecase "Receive Progress Rewards" as uc_receive_progress_rewards
+  usecase "Correct Learning Record" as uc_correct_learning_record
+  usecase "Manage Evolving Context" as uc_manage_evolving_context
+  usecase "Monetize Product" as uc_generate_sales
+  usecase "Manage Payments" as uc_manage_payments
+  usecase "Maintain System" as uc_maintain_system
+  usecase "Publish New Version" as uc_publish_new_version
+  usecase "Monitor System Health" as uc_monitor_system_health
+  usecase "Manage Application Data" as uc_manage_application_data
+  usecase "Manage AI Provider Configuration" as uc_manage_ai_provider_config
+  usecase "Protect Users from Security Threats" as uc_protect_users_from_security_threats
+  usecase "Monitor for Threats" as uc_monitor_for_threats
+  usecase "Harden System Security" as uc_harden_system_security
+  usecase "Respond to Security Incidents" as uc_respond_to_security_incidents
+  usecase "Recover from Security Incidents" as uc_recover_from_security_incidents
+  usecase "Test System" as uc_test_system
+  usecase "Plan Tests" as uc_plan_tests
+  usecase "Execute Automated Tests" as uc_execute_automated_tests
+  usecase "Execute Manual Tests" as uc_execute_manual_tests
+  usecase "Manage Discovered Faults" as uc_manage_discovered_faults
+  usecase "Verify Fixes" as uc_verify_fixes
 }
 
-legend right
-  |= Color |= Status |
-  | <#LightBlue> | System of Interest |
-  | <#PaleGreen> | MVP |
-  | <#LightGoldenRodYellow> | Future |
-endlegend
+act_lqs --> uc_access_application
+act_lqs --> uc_authenticate_users
+act_lqs --> uc_learn_language
+act_lqs --> uc_build_vocabulary
+act_lqs --> uc_learn_grammar
+act_lqs --> uc_learn_pronunciation
+act_lqs --> uc_practice_receptive_skills
+act_lqs --> uc_practice_productive_skills
+act_lqs --> uc_review_srs_session
+act_lqs --> uc_request_learning_explanation
+act_lqs --> uc_use_instructor_mode
+act_lqs --> uc_manage_learner_profile
+act_lqs --> uc_correct_learning_record
+act_lqs --> uc_retain_progress_across_stories
+act_lqs --> uc_play_rpg
+act_lqs --> uc_start_new_story
+act_lqs --> uc_continue_existing_story
+act_lqs --> uc_manage_story_history
+act_lqs --> uc_delete_story
+act_lqs --> uc_manage_story_character
+act_lqs --> uc_manage_story_settings
+act_lqs --> uc_understand_learning_progress
+act_lqs --> uc_view_grammar_progress
+act_lqs --> uc_view_vocabulary_progress
+act_lqs --> uc_receive_progress_rewards
+act_lqs --> uc_manage_evolving_context
+act_lqs --> uc_generate_sales
+act_lqs --> uc_manage_payments
+act_lqs --> uc_maintain_system
+act_lqs --> uc_publish_new_version
+act_lqs --> uc_monitor_system_health
+act_lqs --> uc_manage_application_data
+act_lqs --> uc_manage_ai_provider_config
+act_lqs --> uc_protect_users_from_security_threats
+act_lqs --> uc_monitor_for_threats
+act_lqs --> uc_harden_system_security
+act_lqs --> uc_respond_to_security_incidents
+act_lqs --> uc_recover_from_security_incidents
+act_lqs --> uc_test_system
+act_lqs --> uc_plan_tests
+act_lqs --> uc_execute_automated_tests
+act_lqs --> uc_execute_manual_tests
+act_lqs --> uc_manage_discovered_faults
+act_lqs --> uc_verify_fixes
+act_heidi --> uc_access_application
+act_heidi --> uc_authenticate_users
+act_heidi --> uc_learn_language
+act_heidi --> uc_review_srs_session
+act_heidi --> uc_request_learning_explanation
+act_heidi --> uc_use_instructor_mode
+act_heidi --> uc_correct_learning_record
+act_heidi --> uc_play_rpg
+act_heidi --> uc_understand_learning_progress
+act_learner --> uc_access_application
+act_learner --> uc_authenticate_users
+act_learner --> uc_learn_language
+act_learner --> uc_review_srs_session
+act_learner --> uc_request_learning_explanation
+act_learner --> uc_use_instructor_mode
+act_learner --> uc_manage_learner_profile
+act_learner --> uc_correct_learning_record
+act_learner --> uc_play_rpg
+act_learner --> uc_understand_learning_progress
+act_learner --> uc_manage_payments
+act_developer --> uc_generate_sales
+act_developer --> uc_manage_payments
+act_developer --> uc_test_system
+act_tester --> uc_test_system
+act_test_bench --> uc_execute_automated_tests
+act_test_bench --> uc_verify_fixes
+act_maintainer --> uc_maintain_system
+act_security_specialist --> uc_protect_users_from_security_threats
+act_ai_provider --> uc_learn_language
+act_ai_provider --> uc_review_srs_session
+act_ai_provider --> uc_request_learning_explanation
+act_ai_provider --> uc_use_instructor_mode
+act_ai_provider --> uc_play_rpg
+act_ai_provider --> uc_understand_learning_progress
+act_ai_provider --> uc_manage_evolving_context
+act_ai_provider --> uc_manage_ai_provider_config
+act_host_platform --> uc_access_application
+act_host_platform --> uc_protect_users_from_security_threats
+act_host_platform --> uc_publish_new_version
+act_host_platform --> uc_monitor_system_health
+act_host_platform --> uc_manage_application_data
+act_payment_provider --> uc_manage_payments
+act_advertising_platform --> uc_generate_sales
+act_auth_provider --> uc_authenticate_users
+act_auth_provider --> uc_protect_users_from_security_threats
+uc_learn_language ..> uc_build_vocabulary : <<include>>
+uc_learn_language ..> uc_learn_grammar : <<include>>
+uc_learn_language ..> uc_learn_pronunciation : <<include>>
+uc_learn_language ..> uc_practice_receptive_skills : <<include>>
+uc_learn_language ..> uc_practice_productive_skills : <<include>>
+uc_learn_language ..> uc_review_srs_session : <<include>>
+uc_learn_language ..> uc_request_learning_explanation : <<include>>
+uc_learn_language ..> uc_manage_learner_profile : <<include>>
+uc_learn_language ..> uc_retain_progress_across_stories : <<include>>
+uc_play_rpg ..> uc_start_new_story : <<include>>
+uc_play_rpg ..> uc_continue_existing_story : <<include>>
+uc_play_rpg ..> uc_manage_story_history : <<include>>
+uc_play_rpg ..> uc_delete_story : <<include>>
+uc_play_rpg ..> uc_manage_story_character : <<include>>
+uc_play_rpg ..> uc_manage_story_settings : <<include>>
+uc_play_rpg ..> uc_use_instructor_mode : <<include>>
+uc_understand_learning_progress ..> uc_view_grammar_progress : <<include>>
+uc_understand_learning_progress ..> uc_view_vocabulary_progress : <<include>>
+uc_understand_learning_progress ..> uc_receive_progress_rewards : <<include>>
+uc_understand_learning_progress ..> uc_correct_learning_record : <<include>>
+uc_maintain_system ..> uc_publish_new_version : <<include>>
+uc_maintain_system ..> uc_monitor_system_health : <<include>>
+uc_maintain_system ..> uc_manage_application_data : <<include>>
+uc_maintain_system ..> uc_manage_ai_provider_config : <<include>>
+uc_protect_users_from_security_threats ..> uc_monitor_for_threats : <<include>>
+uc_protect_users_from_security_threats ..> uc_harden_system_security : <<include>>
+uc_protect_users_from_security_threats ..> uc_respond_to_security_incidents : <<include>>
+uc_protect_users_from_security_threats ..> uc_recover_from_security_incidents : <<include>>
+uc_test_system ..> uc_plan_tests : <<include>>
+uc_test_system ..> uc_execute_automated_tests : <<include>>
+uc_test_system ..> uc_execute_manual_tests : <<include>>
+uc_test_system ..> uc_manage_discovered_faults : <<include>>
+uc_test_system ..> uc_verify_fixes : <<include>>
 
 @enduml

@@ -7,20 +7,35 @@ skinparam class {
   BackgroundColor<<software>> LightYellow
 }
 
-class "Croatian Learning App Context" <<context>> as blk_log_context {
+class "Language Quest System Context (MVP Single-User)" <<context>> as blk_log_context_mvp_single_user {
 }
 
-class "Learner" <<external>> as blk_log_learner_ext {
-  <<port>> ui : User Interaction
+class "Learning User External" <<external>> as blk_log_ext_learning_user {
+  <<port>> learning ui : Learning UI
 }
 
-class "AI Provider" <<external>> as blk_log_ai_ext {
-  <<port>> ~api : AI Interface
+class "Operations User External" <<external>> as blk_log_ext_operations_user {
+  <<port>> operations ui : Operations UI
 }
 
-class "Learning App" <<logical>> as blk_log_system {
-  <<port>> ~ui : User Interaction
+class "AI Provider External" <<external>> as blk_log_ext_ai_provider {
+  <<port>> ~ai api : AI Interface
+}
+
+class "Host Platform External" <<external>> as blk_log_ext_host_platform {
+  <<port>> ~platform services : Platform Services
+}
+
+class "Test Bench External" <<external>> as blk_log_ext_test_bench {
+  <<port>> ~test harness : Test Harness
+}
+
+class "Language Quest System (MVP Single-User)" <<logical>> as blk_log_system_mvp_single_user {
+  <<port>> ~learning ui : Learning UI
+  <<port>> ~operations ui : Operations UI
   <<port>> ai : AI Interface
+  <<port>> platform services : Platform Services
+  <<port>> test harness : Test Harness
 }
 
 class "Game Engine" <<logical>> as blk_log_game_engine {
@@ -39,12 +54,15 @@ class "AI Orchestrator" <<logical>> as blk_log_ai_orchestrator {
 class "User Manager" <<logical>> as blk_log_user_manager {
 }
 
-blk_log_context *-- blk_log_system : learning app
-blk_log_context *-- blk_log_learner_ext : learner
-blk_log_context *-- blk_log_ai_ext : ai provider
-blk_log_system *-- blk_log_game_engine : game engine
-blk_log_system *-- blk_log_language_engine : language engine
-blk_log_system *-- blk_log_ai_orchestrator : ai orchestrator
-blk_log_system *-- blk_log_user_manager : user manager
+blk_log_context_mvp_single_user *-- blk_log_system_mvp_single_user : language quest system (mvp)
+blk_log_context_mvp_single_user *-- blk_log_ext_learning_user : learning user external
+blk_log_context_mvp_single_user *-- blk_log_ext_operations_user : operations user external
+blk_log_context_mvp_single_user *-- blk_log_ext_ai_provider : ai provider external
+blk_log_context_mvp_single_user *-- blk_log_ext_host_platform : host platform external
+blk_log_context_mvp_single_user *-- blk_log_ext_test_bench : test bench external
+blk_log_system_mvp_single_user *-- blk_log_game_engine : game engine
+blk_log_system_mvp_single_user *-- blk_log_language_engine : language engine
+blk_log_system_mvp_single_user *-- blk_log_ai_orchestrator : ai orchestrator
+blk_log_system_mvp_single_user *-- blk_log_user_manager : user manager
 
 @enduml

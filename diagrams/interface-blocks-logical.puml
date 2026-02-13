@@ -4,15 +4,30 @@ skinparam class {
   BackgroundColor<<physical>> Plum
 }
 
-class "User Interaction" <<logical>> as ib_log_user_interaction {
+class "Learning UI" <<logical>> as ib_log_learning_ui {
   inout player input : Player Input
   out narrative output : Narrative Output
   out multiple choice options : Multiple Choice Options
 }
 
+class "Operations UI" <<logical>> as ib_log_operations_ui {
+  inout operations command : Operations Command
+  out operations status : Operations Status
+}
+
 class "AI Interface" <<logical>> as ib_log_ai_interface {
   out prompt : AI Prompt
   inout response : AI Response
+}
+
+class "Platform Services" <<logical>> as ib_log_platform_services {
+  out deploy request : Deploy Request
+  inout runtime telemetry : Runtime Telemetry
+}
+
+class "Test Harness" <<logical>> as ib_log_test_harness {
+  out test request : Test Request
+  inout test result : Test Result
 }
 
 class "Language Services" <<logical>> as ib_log_language_services {
@@ -23,16 +38,28 @@ class "Language Services" <<logical>> as ib_log_language_services {
 class "Player Input" <<signal>> as sig_player_input
 class "Narrative Output" <<signal>> as sig_narrative_output
 class "Multiple Choice Options" <<signal>> as sig_mc_options
+class "Operations Command" <<signal>> as sig_operations_command
+class "Operations Status" <<signal>> as sig_operations_status
 class "AI Prompt" <<signal>> as sig_ai_prompt
 class "AI Response" <<signal>> as sig_ai_response
+class "Deploy Request" <<signal>> as sig_deploy_request
+class "Runtime Telemetry" <<signal>> as sig_runtime_telemetry
+class "Test Request" <<signal>> as sig_test_request
+class "Test Result" <<signal>> as sig_test_result
 class "Vocabulary Query" <<signal>> as sig_vocab_query
 class "Assessment Result" <<signal>> as sig_assessment_result
 
-ib_log_user_interaction ..> sig_player_input : <<conveys>>
-ib_log_user_interaction ..> sig_narrative_output : <<conveys>>
-ib_log_user_interaction ..> sig_mc_options : <<conveys>>
+ib_log_learning_ui ..> sig_player_input : <<conveys>>
+ib_log_learning_ui ..> sig_narrative_output : <<conveys>>
+ib_log_learning_ui ..> sig_mc_options : <<conveys>>
+ib_log_operations_ui ..> sig_operations_command : <<conveys>>
+ib_log_operations_ui ..> sig_operations_status : <<conveys>>
 ib_log_ai_interface ..> sig_ai_prompt : <<conveys>>
 ib_log_ai_interface ..> sig_ai_response : <<conveys>>
+ib_log_platform_services ..> sig_deploy_request : <<conveys>>
+ib_log_platform_services ..> sig_runtime_telemetry : <<conveys>>
+ib_log_test_harness ..> sig_test_request : <<conveys>>
+ib_log_test_harness ..> sig_test_result : <<conveys>>
 ib_log_language_services ..> sig_vocab_query : <<conveys>>
 ib_log_language_services ..> sig_assessment_result : <<conveys>>
 
