@@ -97,8 +97,9 @@
 
     function shortLabel(name, status) {
       const s = (status || '').toLowerCase();
-      if (s === 'future') return `${name} [future]`;
-      if (s === 'commercial') return `${name} [commercial]`;
+      // Avoid square brackets in Mermaid node labels; they conflict with shape syntax.
+      if (s === 'future') return `${name} (future)`;
+      if (s === 'commercial') return `${name} (commercial)`;
       return name;
     }
 
