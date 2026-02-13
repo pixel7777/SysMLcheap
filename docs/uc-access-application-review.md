@@ -1,118 +1,73 @@
 # UC Review — Access Application (MVP Single-User)
 
-This artifact is a human-review companion to `model/logical.yaml`.
-It makes operation order, signal consumption/production, and sanity checks explicit.
+Purpose: make control logic, guards, loops, and signal connectivity reviewable (activity-like) without Cameo.
 
-## 1) Intent (Need, not solution)
+## 1) Control-Flow Contract (review view)
 
-Heidi can open the app URL from mobile/desktop browser and reach a learner home view initialized with:
-- MVP static configuration
-- current stories
-- learner progress summary
+```mermaid
+flowchart TD
+  A[AcceptEvent: App Entry Request\n(sig_app_entry_request)] --> B[CallOp: requestApplicationEntry]
+  B --> C[CallOp: evaluateAccessGateRequirement]
+  C --> D{Decision: gate required?}
 
-A minimal local access gate may be applied in MVP.
-Federated/multi-user auth remains future scope.
+  D -- No --> E[CallOp: establishLearnerSession\n(no-credential path)]
+  D -- Yes --> F[AcceptEvent: Local Access Credential\n(sig_local_access_credential)]
+  F --> G[CallOp: validateLocalAccessCredential]
+  G --> H{Decision: credential valid?}
+  H -- No --> F
+  H -- Yes --> E
 
-## 2) Ordered Execution Flow (System-Level)
+  E --> I[CallOp: loadMvpStaticConfiguration]
+  E --> J[CallOp: loadCurrentStories]
+  E --> K[CallOp: loadLearnerProgressSummary]
 
-1. `requestApplicationEntry`
-   - consumes: `sig_app_entry_request`
-   - produces: `sig_app_entry_response`
+  I --> L[CallOp: renderLearnerHomeView]
+  J --> L
+  K --> L
 
-2. `evaluateAccessGateRequirement`
-   - consumes: `sig_app_entry_request`
-   - produces: `sig_access_gate_decision`
+  L --> M[SendSignal: Learner Home View Model\n(sig_learner_home_view_model)]
+  M --> N((Final))
+```
 
-3. `validateLocalAccessCredential` (conditional)
-   - consumes: `sig_local_access_credential`
-   - produces: `sig_credential_validation_result`
+## 2) Node Catalog (type + ownership)
 
-4. `establishLearnerSession`
-   - consumes: `sig_credential_validation_result` (or equivalent pass condition if gate not required)
-   - produces: `sig_learner_session`
+- `AcceptEvent` `app_entry_request` (external input)
+- `CallOperation` `requestApplicationEntry`
+- `CallOperation` `evaluateAccessGateRequirement`
+- `Decision` `gate required?`
+- `AcceptEvent` `local_access_credential` (external input)
+- `CallOperation` `validateLocalAccessCredential`
+- `Decision` `credential valid?`
+- `CallOperation` `establishLearnerSession`
+- `CallOperation` `loadMvpStaticConfiguration`
+- `CallOperation` `loadCurrentStories`
+- `CallOperation` `loadLearnerProgressSummary`
+- `CallOperation` `renderLearnerHomeView`
+- `SendSignal` `learner_home_view_model`
 
-5. `loadMvpStaticConfiguration`
-   - consumes: `sig_learner_session`
-   - produces: `sig_mvp_configuration_snapshot`
+## 3) Object-Flow Connectivity Ledger
 
-6. `loadCurrentStories`
-   - consumes: `sig_learner_session`
-   - produces: `sig_current_story_summary`
+| Signal | Producer | Consumer(s) | Origin | Status |
+|---|---|---|---|---|
+| `sig_app_entry_request` | Learning User External | `requestApplicationEntry`, `evaluateAccessGateRequirement` | external | connected |
+| `sig_app_entry_response` | `requestApplicationEntry` | Learning User External | system | terminal-to-external |
+| `sig_access_gate_decision` | `evaluateAccessGateRequirement` | decision `gate required?` | system | connected |
+| `sig_local_access_credential` | Learning User External | `validateLocalAccessCredential` | external | connected |
+| `sig_credential_validation_result` | `validateLocalAccessCredential` | decision `credential valid?`, `establishLearnerSession` (valid path) | system | connected |
+| `sig_learner_session` | `establishLearnerSession` | `loadMvpStaticConfiguration`, `loadCurrentStories`, `loadLearnerProgressSummary` | system | connected |
+| `sig_mvp_configuration_snapshot` | `loadMvpStaticConfiguration` | `renderLearnerHomeView` | system | connected |
+| `sig_current_story_summary` | `loadCurrentStories` | `renderLearnerHomeView` | system | connected |
+| `sig_learner_progress_summary` | `loadLearnerProgressSummary` | `renderLearnerHomeView` | system | connected |
+| `sig_learner_home_view_model` | `renderLearnerHomeView` | Learning User External | system | terminal-to-external |
 
-7. `loadLearnerProgressSummary`
-   - consumes: `sig_learner_session`
-   - produces: `sig_learner_progress_summary`
+## 4) Quick Correctness Checks
 
-8. `renderLearnerHomeView`
-   - consumes: `sig_mvp_configuration_snapshot`, `sig_current_story_summary`, `sig_learner_progress_summary`
-   - produces: `sig_learner_home_view_model`
+- Guarded branch exists for gate-required vs no-gate path. ✅
+- Retry loop exists for invalid credential. ✅
+- External-origin events are explicit (`AcceptEvent`). ✅
+- Produced signals are either consumed internally or intentionally terminal to external UI. ✅
 
-## 3) Signal Ledger (Who Produces / Who Consumes)
+## 5) Open decisions
 
-- `sig_app_entry_request`
-  - produced by: Learning User External (via Learning UI)
-  - consumed by: `requestApplicationEntry`, `evaluateAccessGateRequirement`
-
-- `sig_app_entry_response`
-  - produced by: `requestApplicationEntry`
-  - consumed by: Learning User External (via Learning UI)
-
-- `sig_access_gate_decision`
-  - produced by: `evaluateAccessGateRequirement`
-  - consumed by: access control path logic (system-level control decision)
-
-- `sig_local_access_credential`
-  - produced by: Learning User External (via Learning UI)
-  - consumed by: `validateLocalAccessCredential`
-
-- `sig_credential_validation_result`
-  - produced by: `validateLocalAccessCredential`
-  - consumed by: `establishLearnerSession`
-
-- `sig_learner_session`
-  - produced by: `establishLearnerSession`
-  - consumed by: `loadMvpStaticConfiguration`, `loadCurrentStories`, `loadLearnerProgressSummary`
-
-- `sig_mvp_configuration_snapshot`
-  - produced by: `loadMvpStaticConfiguration`
-  - consumed by: `renderLearnerHomeView`
-
-- `sig_current_story_summary`
-  - produced by: `loadCurrentStories`
-  - consumed by: `renderLearnerHomeView`
-
-- `sig_learner_progress_summary`
-  - produced by: `loadLearnerProgressSummary`
-  - consumed by: `renderLearnerHomeView`
-
-- `sig_learner_home_view_model`
-  - produced by: `renderLearnerHomeView`
-  - consumed by: Learning User External (via Learning UI)
-
-## 4) Alternate/Exception Paths to Confirm
-
-- Invalid local credential
-  - expected: no learner session established, retry/error response allowed.
-
-- Config unavailable/corrupt
-  - expected: safe defaults + warning status path.
-
-- Story/progress retrieval failure
-  - expected: partial home view + degraded status path.
-
-## 5) Best-Practice Checkpoints (Community-aligned)
-
-For app-entry use cases, common good practice is:
-- Separate entry handling from credential validation.
-- Treat session establishment as an explicit function boundary.
-- Load independent home-view data in parallelizable functions.
-- Compose final UI model from validated sub-results.
-- Define degraded-mode behavior explicitly (partial data, safe defaults).
-
-This UC currently follows those patterns.
-
-## 6) Open Modeling Decisions
-
-- Should `establishLearnerSession` accept a generalized gate result instead of only credential result (for no-gate path clarity)?
-- Should `sig_app_entry_response` include explicit challenge metadata for the local gate?
-- Do we want explicit operation(s) for degraded-mode composition (instead of implicit behavior in `renderLearnerHomeView`)?
+- Keep both `requestApplicationEntry` and `evaluateAccessGateRequirement` as separate operations, or merge into one operation with structured response?
+- Should no-gate path produce an explicit synthetic pass signal (for stricter uniformity), or keep direct decision-to-session establishment path?
