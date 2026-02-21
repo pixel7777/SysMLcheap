@@ -28,9 +28,9 @@
     .status-commercial { background: #eae6ff; color: #6f42c1; }
     .status-implemented { background: #ddf4ff; color: #0969da; }
     .status-deprecated { background: #ffebe9; color: var(--red); }
-    .table-scroll { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; background: var(--surface);
-            border-radius: 8px; overflow: hidden; table-layout: auto; min-width: 1800px; }
+    .table-scroll { width: 100%; overflow-x: auto; overflow-y: hidden; border: 1px solid var(--border); border-radius: 8px; }
+    table { width: max-content; min-width: 100%; border-collapse: collapse; background: var(--surface);
+            border-radius: 8px; overflow: hidden; table-layout: auto; }
     thead { background: #f6f8fa; }
     th { text-align: left; padding: 0.6rem 1.2rem 0.6rem 1rem; font-size: 0.8rem; text-transform: uppercase;
          color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap;
@@ -60,6 +60,15 @@
     .toolbar button { background: var(--surface); color: var(--muted); border: 1px solid var(--border);
       padding: 0.3rem 0.7rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
     .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+    .column-picker { position: relative; }
+    .column-picker summary { list-style: none; cursor: pointer; border: 1px solid var(--border); border-radius: 4px;
+      padding: 0.3rem 0.7rem; font-size: 0.8rem; color: var(--muted); background: var(--surface); }
+    .column-picker summary:hover { border-color: var(--accent); color: var(--accent); }
+    .column-picker summary::-webkit-details-marker { display: none; }
+    .column-picker-menu { position: absolute; z-index: 20; top: calc(100% + 0.25rem); left: 0; min-width: 260px;
+      max-height: 300px; overflow: auto; background: #fff; border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+    .column-picker-menu label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; margin: 0.2rem 0; color: var(--text); }
     #loading { color: var(--muted); padding: 2rem; text-align: center; }
     #error { color: var(--red); padding: 2rem; text-align: center; display: none; }
     .count { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.5rem; }
@@ -76,6 +85,10 @@
     <input id="search" type="text" placeholder="filter across all columns…" />
     <button id="clearAll" title="Clear all filters and sorting">✕ Clear filters</button>
     <button id="resetLayout" title="Reset column order and widths">↺ Reset layout</button>
+    <details id="columnPicker" class="column-picker">
+      <summary>Columns ▾</summary>
+      <div id="columnPickerMenu" class="column-picker-menu"></div>
+    </details>
     <a href="./diagrams.html" style="text-decoration:none;border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:4px;font-size:0.8rem;color:var(--muted);">Open live diagrams</a>
   </div>
 
@@ -274,9 +287,10 @@
       localStorage.setItem('sysmlcheap.tablePrefs', JSON.stringify(tablePrefs));
     }
     function getCurrentPrefs(tableDef) {
-      if (!tablePrefs[tableDef.id]) tablePrefs[tableDef.id] = { order: [], widths: {} };
+      if (!tablePrefs[tableDef.id]) tablePrefs[tableDef.id] = { order: [], widths: {}, hidden: [] };
       if (!Array.isArray(tablePrefs[tableDef.id].order)) tablePrefs[tableDef.id].order = [];
       if (!tablePrefs[tableDef.id].widths || typeof tablePrefs[tableDef.id].widths !== 'object') tablePrefs[tableDef.id].widths = {};
+      if (!Array.isArray(tablePrefs[tableDef.id].hidden)) tablePrefs[tableDef.id].hidden = [];
       return tablePrefs[tableDef.id];
     }
     function getOrderedColumns(tableDef) {
@@ -285,6 +299,11 @@
       const ordered = prefs.order.map(f => byField[f]).filter(Boolean);
       const missing = tableDef.columns.filter(c => !prefs.order.includes(c.field));
       return [...ordered, ...missing];
+    }
+    function getVisibleColumns(tableDef) {
+      const prefs = getCurrentPrefs(tableDef);
+      const ordered = getOrderedColumns(tableDef);
+      return ordered.filter(c => !prefs.hidden.includes(c.field));
     }
 
     // ── Fetch ────────────────────────────────────────────────────────────
@@ -300,10 +319,34 @@
     }
 
     // ── Render ───────────────────────────────────────────────────────────
+    function renderColumnPicker(tableDef) {
+      const menu = document.getElementById('columnPickerMenu');
+      menu.innerHTML = '';
+      const prefs = getCurrentPrefs(tableDef);
+
+      tableDef.columns.forEach(col => {
+        const label = document.createElement('label');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !prefs.hidden.includes(col.field);
+        cb.onchange = () => {
+          if (cb.checked) prefs.hidden = prefs.hidden.filter(f => f !== col.field);
+          else prefs.hidden = [...new Set([...prefs.hidden, col.field])];
+          saveTablePrefs();
+          renderAll();
+        };
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(col.header));
+        menu.appendChild(label);
+      });
+    }
+
     function renderAll() {
       tabsEl.querySelectorAll('button').forEach(b =>
         b.classList.toggle('active', b.dataset.id === currentTable));
-      loadTable(TABLES.find(t => t.id === currentTable));
+      const tableDef = TABLES.find(t => t.id === currentTable);
+      renderColumnPicker(tableDef);
+      loadTable(tableDef);
     }
 
     async function loadTable(tableDef) {
@@ -335,7 +378,7 @@
           }
         });
 
-        const columns = getOrderedColumns(tableDef);
+        const columns = getVisibleColumns(tableDef);
         const prefs = getCurrentPrefs(tableDef);
 
         // global search
