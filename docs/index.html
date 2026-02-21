@@ -85,6 +85,12 @@
     <input id="search" type="text" placeholder="filter across all columns…" />
     <button id="clearAll" title="Clear all filters and sorting">✕ Clear filters</button>
     <button id="resetLayout" title="Reset column order and widths">↺ Reset layout</button>
+    <select id="viewSelect" title="Load saved view" style="font-size:0.8rem;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:4px;background:#fff;color:var(--text);min-width:170px;">
+      <option value="">Default view</option>
+    </select>
+    <input id="viewName" type="text" placeholder="view name" style="max-width:130px;" />
+    <button id="saveView" title="Save current layout/filters/sort as named view">💾 Save view</button>
+    <button id="deleteView" title="Delete selected saved view">🗑 Delete view</button>
     <details id="columnPicker" class="column-picker">
       <summary>Columns ▾</summary>
       <div id="columnPickerMenu" class="column-picker-menu"></div>
@@ -262,7 +268,8 @@
     let sortCol = null;   // field name
     let sortAsc = true;
     let colFilters = {};  // field -> value
-    let tablePrefs = loadTablePrefs(); // tableId -> { order: [field], widths: {field:px} }
+    let tablePrefs = loadTablePrefs(); // tableId -> { order: [field], widths: {field:px}, hidden:[field] }
+    let savedViews = loadSavedViews(); // tableId -> { viewName -> snapshot }
 
     // ── Build tabs ───────────────────────────────────────────────────────
     const tabsEl = document.getElementById('tabs');
@@ -285,6 +292,13 @@
     }
     function saveTablePrefs() {
       localStorage.setItem('sysmlcheap.tablePrefs', JSON.stringify(tablePrefs));
+    }
+    function loadSavedViews() {
+      try { return JSON.parse(localStorage.getItem('sysmlcheap.savedViews') || '{}'); }
+      catch { return {}; }
+    }
+    function saveSavedViews() {
+      localStorage.setItem('sysmlcheap.savedViews', JSON.stringify(savedViews));
     }
     function getCurrentPrefs(tableDef) {
       if (!tablePrefs[tableDef.id]) tablePrefs[tableDef.id] = { order: [], widths: {}, hidden: [] };
@@ -341,11 +355,54 @@
       });
     }
 
+    function renderViewOptions(tableDef) {
+      const sel = document.getElementById('viewSelect');
+      const tableViews = savedViews[tableDef.id] || {};
+      const current = sel.value;
+      sel.innerHTML = '<option value="">Default view</option>';
+      Object.keys(tableViews).sort().forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+      if (current && tableViews[current]) sel.value = current;
+      else if (!tableViews[current]) sel.value = '';
+    }
+
+    function captureCurrentView(tableDef) {
+      const prefs = getCurrentPrefs(tableDef);
+      return {
+        order: [...prefs.order],
+        widths: { ...prefs.widths },
+        hidden: [...prefs.hidden],
+        sortCol,
+        sortAsc,
+        colFilters: { ...colFilters },
+        globalSearch: document.getElementById('search').value || ''
+      };
+    }
+
+    function applyView(tableDef, view) {
+      if (!view) return;
+      tablePrefs[tableDef.id] = {
+        order: Array.isArray(view.order) ? [...view.order] : [],
+        widths: (view.widths && typeof view.widths === 'object') ? { ...view.widths } : {},
+        hidden: Array.isArray(view.hidden) ? [...view.hidden] : []
+      };
+      sortCol = view.sortCol || null;
+      sortAsc = (view.sortAsc !== false);
+      colFilters = (view.colFilters && typeof view.colFilters === 'object') ? { ...view.colFilters } : {};
+      document.getElementById('search').value = view.globalSearch || '';
+      saveTablePrefs();
+    }
+
     function renderAll() {
       tabsEl.querySelectorAll('button').forEach(b =>
         b.classList.toggle('active', b.dataset.id === currentTable));
       const tableDef = TABLES.find(t => t.id === currentTable);
       renderColumnPicker(tableDef);
+      renderViewOptions(tableDef);
       loadTable(tableDef);
     }
 
@@ -554,10 +611,52 @@
     document.getElementById('resetLayout').addEventListener('click', () => {
       const tableDef = TABLES.find(t => t.id === currentTable);
       if (tableDef) {
-        tablePrefs[tableDef.id] = { order: [], widths: {} };
+        tablePrefs[tableDef.id] = { order: [], widths: {}, hidden: [] };
         saveTablePrefs();
       }
       renderAll();
+    });
+
+    document.getElementById('saveView').addEventListener('click', () => {
+      const tableDef = TABLES.find(t => t.id === currentTable);
+      const input = document.getElementById('viewName');
+      const name = (input.value || '').trim();
+      if (!tableDef || !name) return;
+      if (!savedViews[tableDef.id]) savedViews[tableDef.id] = {};
+      savedViews[tableDef.id][name] = captureCurrentView(tableDef);
+      saveSavedViews();
+      renderViewOptions(tableDef);
+      document.getElementById('viewSelect').value = name;
+    });
+
+    document.getElementById('viewSelect').addEventListener('change', (e) => {
+      const tableDef = TABLES.find(t => t.id === currentTable);
+      if (!tableDef) return;
+      const name = e.target.value;
+      if (!name) {
+        tablePrefs[tableDef.id] = { order: [], widths: {}, hidden: [] };
+        saveTablePrefs();
+        resetFilters();
+        renderAll();
+        return;
+      }
+      const view = savedViews?.[tableDef.id]?.[name];
+      if (!view) return;
+      applyView(tableDef, view);
+      renderAll();
+    });
+
+    document.getElementById('deleteView').addEventListener('click', () => {
+      const tableDef = TABLES.find(t => t.id === currentTable);
+      const sel = document.getElementById('viewSelect');
+      const name = sel.value;
+      if (!tableDef || !name) return;
+      if (savedViews?.[tableDef.id]?.[name]) {
+        delete savedViews[tableDef.id][name];
+        saveSavedViews();
+      }
+      sel.value = '';
+      renderViewOptions(tableDef);
     });
 
     // ── Init ─────────────────────────────────────────────────────────────
