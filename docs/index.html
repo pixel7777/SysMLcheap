@@ -117,6 +117,13 @@
           { header: 'ID',         field: 'id',       cls: 'id', filterable: 'text', sortable: true },
           { header: 'Status',     field: 'status',         filterable: 'select', sortable: true, render: statusBadge },
           { header: 'Owner',      field: 'ownerRef', cls: 'id', filterable: 'select', sortable: true },
+          { header: 'Outcome',    field: '_ldsOutcome',        cls: 'doc', filterable: 'text', sortable: true },
+          { header: 'Stories',    field: '_ldsStoriesSummary', filterable: 'text', sortable: true },
+          { header: 'Business Rules', field: '_ldsBusinessRulesSummary', filterable: 'text', sortable: true },
+          { header: 'Logical Responsibilities', field: '_ldsResponsibilitiesSummary', filterable: 'text', sortable: true },
+          { header: 'Quality Targets', field: '_ldsQualitySummary', filterable: 'text', sortable: true },
+          { header: 'Acceptance Tests', field: '_ldsAcceptanceCount', filterable: 'text', sortable: true },
+          { header: 'Open Tradeoffs', field: '_ldsTradeoffsSummary', filterable: 'text', sortable: true },
           { header: 'Actors',     field: 'actorRefs',           filterable: false,    sortable: false, render: refList },
           { header: 'Extends',    field: 'extendRefs',          filterable: false,    sortable: false, render: refList },
           { header: 'Includes',   field: 'includeRefs',         filterable: false,    sortable: false, render: refList },
@@ -179,6 +186,61 @@
         ? row.parts.flatMap(p => Array.isArray(p.realizationRefs) ? p.realizationRefs : [])
         : [];
       return [...new Set([...direct, ...viaParts].filter(r => String(r).startsWith('uc_')))];
+    }
+
+    function normalizeUcId(id) {
+      return String(id || '').replace(/^uc[_-]/, '').replace(/_/g, '-').toLowerCase();
+    }
+
+    function summarizeList(items, field) {
+      if (!Array.isArray(items) || items.length === 0) return '—';
+      const vals = items.map(i => (field ? i?.[field] : i)).filter(Boolean);
+      if (vals.length === 0) return `${items.length}`;
+      const preview = vals.slice(0, 2).join(' | ');
+      return vals.length > 2 ? `${vals.length}: ${preview}…` : `${vals.length}: ${preview}`;
+    }
+
+    async function fetchLdsByUseCaseRef() {
+      if (window.__ldsByUseCaseRef) return window.__ldsByUseCaseRef;
+
+      const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/specs/use-cases?ref=${BRANCH}`;
+      const resp = await fetch(apiUrl);
+      if (!resp.ok) {
+        window.__ldsByUseCaseRef = {};
+        return window.__ldsByUseCaseRef;
+      }
+
+      const entries = await resp.json();
+      const yamlFiles = (Array.isArray(entries) ? entries : []).filter(e =>
+        e.type === 'file' && /\.lds\.ya?ml$/i.test(e.name));
+
+      const byUc = {};
+      await Promise.all(yamlFiles.map(async (entry) => {
+        try {
+          const fileResp = await fetch(entry.download_url);
+          if (!fileResp.ok) return;
+          const text = await fileResp.text();
+          const lds = jsyaml.load(text) || {};
+          const ucRef = normalizeUcId(lds.useCaseRef);
+          if (ucRef) byUc[ucRef] = lds;
+        } catch (_) { /* best-effort */ }
+      }));
+
+      window.__ldsByUseCaseRef = byUc;
+      return byUc;
+    }
+
+    function applyLdsToUseCaseRows(rows, ldsByUc) {
+      rows.forEach(row => {
+        const lds = ldsByUc[normalizeUcId(row.id)];
+        row._ldsOutcome = lds?.intent?.outcome || '—';
+        row._ldsStoriesSummary = summarizeList(lds?.userStories, 'iWant');
+        row._ldsBusinessRulesSummary = summarizeList(lds?.businessRules, 'rule');
+        row._ldsResponsibilitiesSummary = summarizeList(lds?.logicalResponsibilities, 'name');
+        row._ldsQualitySummary = summarizeList(lds?.qualityRequirements, 'requirement');
+        row._ldsAcceptanceCount = Array.isArray(lds?.acceptanceTests) ? String(lds.acceptanceTests.length) : '0';
+        row._ldsTradeoffsSummary = summarizeList(lds?.openTradeoffs || lds?.tradeoffQuestions, 'question');
+      });
     }
 
     // ── State ────────────────────────────────────────────────────────────
@@ -255,6 +317,12 @@
         const data = await fetchYaml(tableDef.file);
         let rows = [...(data[tableDef.key] || [])];
         if (tableDef.rowFilter) rows = rows.filter(tableDef.rowFilter);
+
+        if (tableDef.id === 'usecases') {
+          const ldsByUc = await fetchLdsByUseCaseRef();
+          applyLdsToUseCaseRows(rows, ldsByUc);
+        }
+
         const allRows = rows; // for select options
 
         // Build id -> element map for reference rendering (same YAML file)
