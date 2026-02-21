@@ -51,6 +51,7 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f6f8fa; }
     td.doc { color: var(--muted); }
+    td.preline { white-space: pre-line; }
     td.id { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.8rem; color: var(--muted); }
     .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
     .toolbar label { font-size: 0.8rem; color: var(--muted); }
@@ -137,13 +138,13 @@
           { header: 'ID',         field: 'id',       cls: 'id', filterable: 'text', sortable: true },
           { header: 'Status',     field: 'status',         filterable: 'select', sortable: true, render: statusBadge },
           { header: 'Owner',      field: 'ownerRef', cls: 'id', filterable: 'select', sortable: true },
-          { header: 'Outcome',    field: '_ldsOutcome',        cls: 'doc', filterable: 'text', sortable: true },
-          { header: 'Stories',    field: '_ldsStoriesSummary', filterable: 'text', sortable: true },
-          { header: 'Business Rules', field: '_ldsBusinessRulesSummary', filterable: 'text', sortable: true },
-          { header: 'Logical Responsibilities', field: '_ldsResponsibilitiesSummary', filterable: 'text', sortable: true },
-          { header: 'Quality Targets', field: '_ldsQualitySummary', filterable: 'text', sortable: true },
-          { header: 'Acceptance Tests', field: '_ldsAcceptanceSummary', filterable: 'text', sortable: true },
-          { header: 'Open Tradeoffs', field: '_ldsTradeoffsSummary', filterable: 'text', sortable: true },
+          { header: 'Outcome',    field: '_ldsOutcome',        cls: 'doc preline', filterable: 'text', sortable: true },
+          { header: 'Stories',    field: '_ldsStoriesSummary', cls: 'preline', filterable: 'text', sortable: true },
+          { header: 'Business Rules', field: '_ldsBusinessRulesSummary', cls: 'preline', filterable: 'text', sortable: true },
+          { header: 'Logical Responsibilities', field: '_ldsResponsibilitiesSummary', cls: 'preline', filterable: 'text', sortable: true },
+          { header: 'Quality Targets', field: '_ldsQualitySummary', cls: 'preline', filterable: 'text', sortable: true },
+          { header: 'Acceptance Tests', field: '_ldsAcceptanceSummary', cls: 'preline', filterable: 'text', sortable: true },
+          { header: 'Open Tradeoffs', field: '_ldsTradeoffsSummary', cls: 'preline', filterable: 'text', sortable: true },
           { header: 'Actors',     field: 'actorRefs',           filterable: false,    sortable: false, render: refList },
           { header: 'Extends',    field: 'extendRefs',          filterable: false,    sortable: false, render: refList },
           { header: 'Includes',   field: 'includeRefs',         filterable: false,    sortable: false, render: refList },
@@ -216,7 +217,7 @@
       if (!Array.isArray(items) || items.length === 0) return '—';
       const vals = items.map(i => (field ? i?.[field] : i)).filter(Boolean);
       if (vals.length === 0) return `${items.length}`;
-      return vals.join(' | ');
+      return vals.map(v => `• ${v}`).join('\n');
     }
 
     async function fetchLdsByUseCaseRef() {
@@ -259,7 +260,7 @@
         row._ldsQualitySummary = summarizeList(lds?.qualityRequirements, 'requirement');
         row._ldsAcceptanceSummary = summarizeList(
           (lds?.acceptanceTests || []).map(t => ({
-            text: `G:${t.given || '—'} | W:${t.when || '—'} | T:${t.then || '—'}`
+            text: `Given: ${t.given || '—'}\nWhen: ${t.when || '—'}\nThen: ${t.then || '—'}`
           })),
           'text'
         );
