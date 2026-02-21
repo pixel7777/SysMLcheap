@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LQS MVP Demo — Access Application</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f6f8fa; color: #1f2328; }
+    .wrap { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    .card { background: #fff; border: 1px solid #d0d7de; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+    h1 { margin: 0 0 8px; font-size: 1.4rem; }
+    .muted { color: #57606a; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    label { font-size: 0.9rem; }
+    select, input[type="checkbox"], button { font-size: 0.9rem; }
+    button { border: 1px solid #d0d7de; background: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+    button.primary { background: #0969da; color: #fff; border-color: #0969da; }
+    .banner { border: 1px solid #ffcc66; background: #fff8c5; color: #9a6700; border-radius: 8px; padding: 10px; }
+    .pill { display:inline-block; background:#ddf4ff; color:#0969da; border-radius:999px; padding:2px 10px; font-size:0.8rem; }
+    ul { margin: 8px 0 0 20px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Language Questing System — Access Application Demo</h1>
+      <div class="muted">Demo harness for acceptance behavior review (no code reading required).</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <label>Learner:
+          <select id="learner">
+            <option value="heidi">Heidi (has checkpoint)</option>
+            <option value="new-learner">New Learner (no checkpoint)</option>
+          </select>
+        </label>
+        <label><input id="degraded" type="checkbox"/> Simulate degraded mode</label>
+        <button class="primary" id="run">Open App</button>
+      </div>
+    </div>
+
+    <div class="card" id="result"></div>
+
+    <div class="card">
+      <strong>Acceptance scenarios to demo:</strong>
+      <ul>
+        <li>Returning learner routes to <em>Resume checkpoint</em></li>
+        <li>First-time learner routes to <em>Start onboarding</em></li>
+        <li>Degraded mode overrides and shows fallback + banner</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const checkpoints = { 'heidi': 'cp-001' };
+
+    function decideEntry(learnerId, degraded) {
+      if (degraded) {
+        return {
+          entryDecision: 'degraded_mode_fallback',
+          firstAction: 'show_home_placeholder',
+          banner: 'AI services are currently degraded. Safe fallback paths are available.'
+        };
+      }
+      if (checkpoints[learnerId]) {
+        return {
+          entryDecision: 'resume_checkpoint',
+          checkpointId: checkpoints[learnerId],
+          firstAction: 'continue_checkpoint'
+        };
+      }
+      return {
+        entryDecision: 'start_onboarding',
+        firstAction: 'start_onboarding'
+      };
+    }
+
+    function render(decision, learnerId, degraded) {
+      const nextAction = decision.entryDecision === 'resume_checkpoint'
+        ? 'Continue from checkpoint'
+        : decision.entryDecision === 'start_onboarding'
+          ? 'Start onboarding'
+          : 'Open fallback home';
+
+      document.getElementById('result').innerHTML = `
+        <div class="row" style="justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="pill">in app</div>
+            <h2 style="margin:8px 0 6px;">Entry Result</h2>
+            <div><strong>Learner:</strong> ${learnerId}</div>
+            <div><strong>Degraded:</strong> ${degraded ? 'yes' : 'no'}</div>
+            <div><strong>Decision:</strong> ${decision.entryDecision}</div>
+            ${decision.checkpointId ? `<div><strong>Checkpoint:</strong> ${decision.checkpointId}</div>` : ''}
+            <div><strong>First action:</strong> ${decision.firstAction}</div>
+          </div>
+        </div>
+        ${decision.banner ? `<div class="banner" style="margin-top:12px;">${decision.banner}</div>` : ''}
+        <div style="margin-top:12px;"><button>${nextAction}</button></div>
+      `;
+    }
+
+    function run() {
+      const learner = document.getElementById('learner').value;
+      const degraded = document.getElementById('degraded').checked;
+      const decision = decideEntry(learner, degraded);
+      render(decision, learner, degraded);
+    }
+
+    document.getElementById('run').addEventListener('click', run);
+    run();
+  </script>
+</body>
+</html>
