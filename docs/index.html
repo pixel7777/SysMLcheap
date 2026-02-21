@@ -28,7 +28,7 @@
     .status-commercial { background: #eae6ff; color: #6f42c1; }
     .status-implemented { background: #ddf4ff; color: #0969da; }
     .status-deprecated { background: #ffebe9; color: var(--red); }
-    .table-scroll { width: 100%; overflow-x: auto; overflow-y: hidden; border: 1px solid var(--border); border-radius: 8px; }
+    .table-scroll { width: 100%; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 8px; }
     table { width: max-content; min-width: 100%; border-collapse: collapse; background: var(--surface);
             border-radius: 8px; overflow: hidden; table-layout: auto; }
     thead { background: #f6f8fa; }
@@ -47,10 +47,10 @@
       border: 1px solid var(--border); border-radius: 3px;
       background: #fff; color: var(--text); font-weight: normal; text-transform: none; }
     td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border);
-         font-size: 0.85rem; vertical-align: top; }
+         font-size: 0.85rem; vertical-align: top; white-space: nowrap; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f6f8fa; }
-    td.doc { max-width: 420px; color: var(--muted); }
+    td.doc { color: var(--muted); }
     td.id { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.8rem; color: var(--muted); }
     .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
     .toolbar label { font-size: 0.8rem; color: var(--muted); }
