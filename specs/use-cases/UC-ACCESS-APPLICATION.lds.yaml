@@ -27,7 +27,7 @@ businessRules:
   - id: br-access-002
     rule: Authentication failure responses must not reveal whether an account exists.
   - id: br-access-003
-    rule: Entry must provide degraded-mode messaging and safe fallback when AI dependency is unavailable.
+    rule: Entry/access routing is independent of AI dependency state; AI availability is handled as in-app capability state after successful entry.
 
 logicalResponsibilities:
   - id: lr-access-identity
@@ -40,8 +40,8 @@ logicalResponsibilities:
     name: Entry Orchestrator
     responsibility: Route learner to onboarding, resume, or home based on resolved context.
   - id: lr-access-availability
-    name: Availability Guard
-    responsibility: Evaluate dependency health and choose normal versus degraded entry path.
+    name: Capability Availability Guard
+    responsibility: Evaluate dependency health and publish in-app capability state (without changing entry/auth routing).
   - id: lr-access-telemetry
     name: Telemetry Logger
     responsibility: Log entry success/failure outcomes, reason codes, and latency.
@@ -76,7 +76,7 @@ acceptanceTests:
   - id: at-access-003
     given: AI dependency unavailable
     when: learner opens the app
-    then: degraded-mode banner and safe fallback path are shown
+    then: learner still enters app via normal route, and an in-app capability warning banner is shown
   - id: at-access-004
     given: invalid credentials
     when: login attempt fails

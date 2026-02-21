@@ -18,12 +18,14 @@ This spec defines physical intent before implementation and becomes the place we
 ### C1. Learner Browser Client (Heidi)
 - Runs web UI
 - Initiates app entry request
-- Displays one of: Resume, Onboarding, Home/Placeholder, Degraded mode
+- Displays one of: Resume, Onboarding, Home/Placeholder
+- Shows in-app AI capability banner/state when dependencies are degraded
 
 ### C2. Language Questing Web App/API
 - Handles entry orchestration
 - Resolves learner context and route decision
-- Applies security and degraded-mode policies
+- Applies security policies
+- Publishes in-app capability state for AI-dependent features
 
 ### C3. Data Store
 - Stores learner profile, session metadata, and progress checkpoint
@@ -36,7 +38,7 @@ This spec defines physical intent before implementation and becomes the place we
 
 ### C5. External Dependencies (placeholder)
 - Authentication provider (future/externalized option)
-- AI provider health signal (for degraded mode decisioning)
+- AI provider health signal (for in-app capability state)
 
 ## 3) Runtime Interaction (Intent Sequence)
 
@@ -44,13 +46,12 @@ This spec defines physical intent before implementation and becomes the place we
 2. Client calls entry endpoint (`/api/entry`).
 3. Web App/API validates/recovers learner session.
 4. Web App/API resolves context (checkpoint exists? first-time learner?).
-5. Web App/API checks dependency availability state (AI health snapshot).
-6. Web App/API returns entry decision:
+5. Web App/API returns entry decision:
    - `resume_checkpoint`
    - `start_onboarding`
    - `show_home_placeholder`
-   - `degraded_mode_fallback`
-7. Client routes to destination and renders first actionable screen.
+6. Client routes to destination and renders first actionable screen.
+7. Client/Web App reads AI dependency health snapshot and shows in-app capability banner/state when needed.
 
 ## 4) Physical Interface Sketch (Intent)
 
@@ -64,9 +65,8 @@ Response (intent shape):
 
 ```json
 {
-  "entryDecision": "resume_checkpoint | start_onboarding | show_home_placeholder | degraded_mode_fallback",
+  "entryDecision": "resume_checkpoint | start_onboarding | show_home_placeholder",
   "checkpointId": "optional",
-  "banner": "optional text",
   "firstAction": "string"
 }
 ```
@@ -76,7 +76,7 @@ Response (intent shape):
 - Audit event on failed attempt
 
 ## Endpoint: `GET /api/health/dependencies` (internal or service-only)
-- Returns cached dependency availability for entry orchestration
+- Returns cached dependency availability for in-app capability state (not auth/entry routing)
 
 ## 5) Quality Budgets and Constraints
 
@@ -92,7 +92,7 @@ Response (intent shape):
 | Session model | JWT vs server session | Server session | Simpler revocation + less token complexity for MVP | Server-session style behavior in single-user dev baseline |
 | Context lookup | DB-only vs cache-first | DB-only first | Simpler consistency model early | DB-first baseline (no cache layer yet) |
 | Entry routing location | Edge middleware vs app service layer | App service layer | Easier debugging, fewer platform-specific constraints | App service layer |
-| Dependency health check | Live synchronous vs cached heartbeat | Cached heartbeat | Lower entry latency + graceful degradation | Degraded-mode flag for MVP stub; evolve to cached health snapshot |
+| Dependency health check | Live synchronous vs cached heartbeat | Cached heartbeat | Lower latency + graceful feature signaling | In-app capability banner/state only; no impact on entry routing |
 | Host platform | Vercel/Fly/Railway/Render | Evaluate against criteria below | Need concrete deploy constraints | Existing free AWS EC2 + GitHub |
 
 ## 7) Host Platform Evaluation Criteria
@@ -113,7 +113,7 @@ Until full home/resume UI is built, app must show a clear “in app” placehold
 - learner identity/session state (basic)
 - selected entry decision
 - next actionable button (continue / start onboarding)
-- degraded-mode banner when applicable
+- AI capability banner when applicable (post-entry only)
 
 This placeholder is an explicit physical deliverable, not throwaway ambiguity.
 

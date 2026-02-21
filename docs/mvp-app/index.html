@@ -47,7 +47,7 @@
       <ul>
         <li>Returning learner routes to <em>Resume checkpoint</em></li>
         <li>First-time learner routes to <em>Start onboarding</em></li>
-        <li>Degraded mode overrides and shows fallback + banner</li>
+        <li>Degraded mode does not change entry routing; it shows in-app AI capability banner</li>
       </ul>
     </div>
   </div>
@@ -55,14 +55,7 @@
   <script>
     const checkpoints = { 'heidi': 'cp-001' };
 
-    function decideEntry(learnerId, degraded) {
-      if (degraded) {
-        return {
-          entryDecision: 'degraded_mode_fallback',
-          firstAction: 'show_home_placeholder',
-          banner: 'AI services are currently degraded. Safe fallback paths are available.'
-        };
-      }
+    function decideEntry(learnerId) {
       if (checkpoints[learnerId]) {
         return {
           entryDecision: 'resume_checkpoint',
@@ -79,9 +72,7 @@
     function render(decision, learnerId, degraded) {
       const nextAction = decision.entryDecision === 'resume_checkpoint'
         ? 'Continue from checkpoint'
-        : decision.entryDecision === 'start_onboarding'
-          ? 'Start onboarding'
-          : 'Open fallback home';
+        : 'Start onboarding';
 
       document.getElementById('result').innerHTML = `
         <div class="row" style="justify-content:space-between;align-items:flex-start;">
@@ -95,7 +86,7 @@
             <div><strong>First action:</strong> ${decision.firstAction}</div>
           </div>
         </div>
-        ${decision.banner ? `<div class="banner" style="margin-top:12px;">${decision.banner}</div>` : ''}
+        ${degraded ? `<div class="banner" style="margin-top:12px;">AI services are currently degraded. Core app entry is unaffected; AI-dependent features may be limited.</div>` : ''}
         <div style="margin-top:12px;"><button>${nextAction}</button></div>
       `;
     }
@@ -103,7 +94,7 @@
     function run() {
       const learner = document.getElementById('learner').value;
       const degraded = document.getElementById('degraded').checked;
-      const decision = decideEntry(learner, degraded);
+      const decision = decideEntry(learner);
       render(decision, learner, degraded);
     }
 

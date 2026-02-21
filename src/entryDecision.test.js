@@ -14,8 +14,9 @@ test('first-time learner routes to onboarding', () => {
   assert.equal(result.firstAction, 'start_onboarding');
 });
 
-test('degraded mode takes precedence over normal routing', () => {
-  const result = decideEntry({ learnerId: 'heidi', degraded: true });
-  assert.equal(result.entryDecision, 'degraded_mode_fallback');
-  assert.ok(result.banner);
+test('AI degraded state does not change entry routing decision', () => {
+  const normal = decideEntry({ learnerId: 'heidi' });
+  const withDegradedFlag = decideEntry({ learnerId: 'heidi', degraded: true });
+  assert.equal(normal.entryDecision, 'resume_checkpoint');
+  assert.equal(withDegradedFlag.entryDecision, 'resume_checkpoint');
 });

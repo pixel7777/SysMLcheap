@@ -8,15 +8,7 @@ export function loadDevDb() {
   return JSON.parse(raw);
 }
 
-export function decideEntry({ learnerId = 'heidi', degraded = false }) {
-  if (degraded) {
-    return {
-      entryDecision: 'degraded_mode_fallback',
-      firstAction: 'show_home_placeholder',
-      banner: 'AI services are currently degraded. You can still access safe fallback learning paths.'
-    };
-  }
-
+export function decideEntry({ learnerId = 'heidi' }) {
   const db = loadDevDb();
   const checkpoint = db.progressCheckpoints.find((x) => x.learnerId === learnerId && x.active === true);
 

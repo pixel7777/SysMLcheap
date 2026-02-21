@@ -8,16 +8,16 @@ function page(title, body) {
   return `<!doctype html><html><head><meta charset="utf-8"/><title>${title}</title></head><body style="font-family:system-ui;padding:24px"><h1>${title}</h1>${body}</body></html>`;
 }
 
-function renderInApp(decision) {
+function renderInApp(decision, degraded) {
   const actions = {
     resume_checkpoint: '<a href="/resume">Continue from checkpoint</a>',
     start_onboarding: '<a href="/onboarding">Start onboarding</a>',
-    degraded_mode_fallback: '<a href="/app">Open safe fallback home</a>'
+    show_home_placeholder: '<a href="/app">Open app home</a>'
   };
 
   return page('Language Questing System — In App', `
     <p><strong>Entry decision:</strong> ${decision.entryDecision}</p>
-    ${decision.banner ? `<p style="color:#9a6700"><strong>Notice:</strong> ${decision.banner}</p>` : ''}
+    ${degraded ? `<p style="color:#9a6700"><strong>AI capability notice:</strong> AI services are currently degraded. Core app access is still available.</p>` : ''}
     <p><strong>First action:</strong> ${decision.firstAction}</p>
     <p>${actions[decision.entryDecision] || '<a href="/app">Open app home</a>'}</p>
   `);
@@ -29,7 +29,7 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/') {
     const learnerId = url.searchParams.get('learner') || 'heidi';
     const degraded = url.searchParams.get('degraded') === '1';
-    const decision = decideEntry({ learnerId, degraded });
+    const decision = decideEntry({ learnerId });
 
     res.writeHead(302, {
       Location: `/app?learner=${encodeURIComponent(learnerId)}&decision=${decision.entryDecision}${decision.checkpointId ? `&checkpoint=${decision.checkpointId}` : ''}${degraded ? '&degraded=1' : ''}`
@@ -41,10 +41,10 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/app') {
     const learnerId = url.searchParams.get('learner') || 'heidi';
     const degraded = url.searchParams.get('degraded') === '1';
-    const decision = decideEntry({ learnerId, degraded });
+    const decision = decideEntry({ learnerId });
 
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    res.end(renderInApp(decision));
+    res.end(renderInApp(decision, degraded));
     return;
   }
 
