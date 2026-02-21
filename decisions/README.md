@@ -15,3 +15,4 @@ Each decision record follows a simple format: context, decision, and rationale.
 | 007 | [Multiple choice always Croatian plus free text](007-mc-croatian-free-text.md) | 2026-02-12 | Accepted |
 | 008 | [Potential commercial offering](008-commercial-potential.md) | 2026-02-12 | Proposed |
 | 009 | [Code dependency analysis in process](009-code-dependency-analysis.md) | 2026-02-12 | Proposed |
+| 017 | [Logical Delivery Spec (LDS) workflow layer](017-logical-delivery-spec-workflow.md) | 2026-02-21 | Accepted |

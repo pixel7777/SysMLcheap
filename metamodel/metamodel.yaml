@@ -112,6 +112,7 @@ UseCase:
     includeRefs:   { type: refs, target: UseCase }             # Include relationships
     traceRefs:     { type: refs, target: [SourceContent, Requirement] }  # UCTRACE
     extensionPoints: { type: list, items: string }             # EXTENSIONPOINTUSE
+    ldsRef:        { type: ref, target: LogicalDeliverySpec }  # Optional bridge to implementation-facing LDS artifact
   validations:
     - rule: USECASENAME
       check: "name is not empty"
@@ -123,6 +124,29 @@ UseCase:
       check: "use cases may not be directly associated with other use cases (use extend/include)"
     - rule: UCTRACE
       check: "has at least one outgoing trace, extend, refine, or incoming include"
+
+LogicalDeliverySpec:
+  properties:
+    id:            { type: string, required: true, unique: true }
+    title:         { type: string, required: true }
+    useCaseRef:    { type: ref, target: UseCase, required: true }
+    ownerRef:      { type: ref, target: Package }
+    userStories:   { type: list, items: object, required: true }
+    businessRules: { type: list, items: object, required: true }
+    logicalResponsibilities: { type: list, items: object, required: true }
+    stateAndData:  { type: list, items: string }
+    qualityRequirements: { type: list, items: object, required: true }
+    acceptanceTests: { type: list, items: object, required: true }
+    tradeoffQuestions: { type: list, items: object }
+    traceRefs:     { type: refs, target: [UseCase, Requirement, Block] }
+  validations:
+    - rule: LDS_USECASE_LINK
+      check: "must reference exactly one use case"
+    - rule: LDS_MIN_CONTENT
+      check: "must include userStories, businessRules, logicalResponsibilities, qualityRequirements, and acceptanceTests"
+    - rule: LDS_TRACE
+      check: "should trace to at least one requirement or logical block"
+      severity: info
 
 # ──────────────────────────────────────────────────────────────────────────────
 # BLOCKS — Structural elements (Logical & Physical Architecture)

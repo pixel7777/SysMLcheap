@@ -8,6 +8,11 @@ This directory contains the YAML schema definitions for our lightweight MBSE too
 - `validation-rules.yaml` — Validation rules (inspired by SAIC DE v27) adapted for our YAML-based model
 - `diagram-mappings.yaml` — Mapping from model elements to PlantUML diagram types (future)
 
+## Recent additions
+
+- **LogicalDeliverySpec (LDS)** artifact type added to bridge behavioral use cases to implementation-facing specifications.
+- LDS is intended as a medium-granularity, reviewable spec container for stories, rules, logical responsibilities, quality targets, and acceptance tests.
+
 ## Design Philosophy
 
 This metamodel is reverse-engineered from the SAIC DE Validation Rules v27 and Style Guide Process 1-pager v27.

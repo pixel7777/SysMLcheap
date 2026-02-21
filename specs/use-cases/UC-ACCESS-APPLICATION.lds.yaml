@@ -1,0 +1,107 @@
+id: lds-uc-access-application
+useCaseRef: uc-access-application
+title: Access Application — Logical Delivery Spec
+status: mvp
+lastUpdated: 2026-02-21
+
+intent:
+  outcome: Learner can enter the app reliably, resume where they left off, and reach the next actionable learning step quickly.
+
+userStories:
+  - id: us-access-001
+    asA: returning learner
+    iWant: to sign in and resume my active story/session
+    soThat: I can continue learning without friction
+  - id: us-access-002
+    asA: new learner
+    iWant: to start onboarding with minimal friction
+    soThat: I can begin my first learning session quickly
+  - id: us-access-003
+    asA: learner
+    iWant: clear recovery paths when access fails
+    soThat: I know what to do next and do not abandon the app
+
+businessRules:
+  - id: br-access-001
+    rule: Session restore prioritizes unfinished learning flow when a valid checkpoint exists.
+  - id: br-access-002
+    rule: Authentication failure responses must not reveal whether an account exists.
+  - id: br-access-003
+    rule: Entry must provide degraded-mode messaging and safe fallback when AI dependency is unavailable.
+
+logicalResponsibilities:
+  - id: lr-access-identity
+    name: Identity Access Service
+    responsibility: Authenticate learner and issue/manage access session.
+  - id: lr-access-context
+    name: Learner Context Resolver
+    responsibility: Resolve active campaign/story and latest progress checkpoint.
+  - id: lr-access-entry
+    name: Entry Orchestrator
+    responsibility: Route learner to onboarding, resume, or home based on resolved context.
+  - id: lr-access-availability
+    name: Availability Guard
+    responsibility: Evaluate dependency health and choose normal versus degraded entry path.
+  - id: lr-access-telemetry
+    name: Telemetry Logger
+    responsibility: Log entry success/failure outcomes, reason codes, and latency.
+
+stateAndData:
+  - LearnerProfile
+  - AuthSession
+  - ProgressCheckpoint
+  - EntryDecision
+  - SystemAvailabilitySnapshot
+
+qualityRequirements:
+  - id: qr-access-001
+    category: performance
+    requirement: p95 time from app open to first actionable screen < 2.5 seconds in normal mode.
+  - id: qr-access-002
+    category: security
+    requirement: Failed-auth response behavior remains timing-consistent within defined tolerance.
+  - id: qr-access-003
+    category: reliability
+    requirement: 99.5% successful entry orchestration when core dependencies are healthy.
+
+acceptanceTests:
+  - id: at-access-001
+    given: valid returning learner with existing checkpoint
+    when: learner opens the app
+    then: learner is routed to the checkpoint continuation screen
+  - id: at-access-002
+    given: first-time learner with no profile context
+    when: learner opens the app
+    then: learner is routed to onboarding start
+  - id: at-access-003
+    given: AI dependency unavailable
+    when: learner opens the app
+    then: degraded-mode banner and safe fallback path are shown
+  - id: at-access-004
+    given: invalid credentials
+    when: login attempt fails
+    then: generic failure message is displayed and audit event is logged
+
+openTradeoffs:
+  - id: tq-access-001
+    question: Should authentication use JWT tokens or server-side sessions for MVP?
+  - id: tq-access-002
+    question: Should resume context be DB-only or cache-first with DB fallback?
+  - id: tq-access-003
+    question: Should entry routing execute in edge middleware or application service layer?
+  - id: tq-access-004
+    question: Should dependency health checks be synchronous at entry time or served from cached heartbeat state?
+
+traceability:
+  behavioral:
+    - uc-access-application
+  requirements:
+    - req-access-001
+    - req-access-002
+    - req-access-003
+  logicalCandidates:
+    - blk-identity-access-service
+    - blk-learner-context-resolver
+    - blk-entry-orchestrator
+    - blk-availability-guard
+    - blk-telemetry-logger
