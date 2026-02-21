@@ -142,7 +142,7 @@
           { header: 'Business Rules', field: '_ldsBusinessRulesSummary', filterable: 'text', sortable: true },
           { header: 'Logical Responsibilities', field: '_ldsResponsibilitiesSummary', filterable: 'text', sortable: true },
           { header: 'Quality Targets', field: '_ldsQualitySummary', filterable: 'text', sortable: true },
-          { header: 'Acceptance Tests', field: '_ldsAcceptanceCount', filterable: 'text', sortable: true },
+          { header: 'Acceptance Tests', field: '_ldsAcceptanceSummary', filterable: 'text', sortable: true },
           { header: 'Open Tradeoffs', field: '_ldsTradeoffsSummary', filterable: 'text', sortable: true },
           { header: 'Actors',     field: 'actorRefs',           filterable: false,    sortable: false, render: refList },
           { header: 'Extends',    field: 'extendRefs',          filterable: false,    sortable: false, render: refList },
@@ -257,7 +257,12 @@
         row._ldsBusinessRulesSummary = summarizeList(lds?.businessRules, 'rule');
         row._ldsResponsibilitiesSummary = summarizeList(lds?.logicalResponsibilities, 'name');
         row._ldsQualitySummary = summarizeList(lds?.qualityRequirements, 'requirement');
-        row._ldsAcceptanceCount = Array.isArray(lds?.acceptanceTests) ? String(lds.acceptanceTests.length) : '0';
+        row._ldsAcceptanceSummary = summarizeList(
+          (lds?.acceptanceTests || []).map(t => ({
+            text: `G:${t.given || '—'} | W:${t.when || '—'} | T:${t.then || '—'}`
+          })),
+          'text'
+        );
         row._ldsTradeoffsSummary = summarizeList(lds?.openTradeoffs || lds?.tradeoffQuestions, 'question');
       });
     }
