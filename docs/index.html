@@ -28,8 +28,9 @@
     .status-commercial { background: #eae6ff; color: #6f42c1; }
     .status-implemented { background: #ddf4ff; color: #0969da; }
     .status-deprecated { background: #ffebe9; color: var(--red); }
+    .table-scroll { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; background: var(--surface);
-            border-radius: 8px; overflow: hidden; table-layout: fixed; }
+            border-radius: 8px; overflow: hidden; table-layout: auto; min-width: 1800px; }
     thead { background: #f6f8fa; }
     th { text-align: left; padding: 0.6rem 1.2rem 0.6rem 1rem; font-size: 0.8rem; text-transform: uppercase;
          color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap;
@@ -196,8 +197,7 @@
       if (!Array.isArray(items) || items.length === 0) return '—';
       const vals = items.map(i => (field ? i?.[field] : i)).filter(Boolean);
       if (vals.length === 0) return `${items.length}`;
-      const preview = vals.slice(0, 2).join(' | ');
-      return vals.length > 2 ? `${vals.length}: ${preview}…` : `${vals.length}: ${preview}`;
+      return vals.join(' | ');
     }
 
     async function fetchLdsByUseCaseRef() {
@@ -493,7 +493,10 @@
           tbody.appendChild(tr);
         });
         table.appendChild(tbody);
-        wrap.appendChild(table);
+        const scroll = document.createElement('div');
+        scroll.className = 'table-scroll';
+        scroll.appendChild(table);
+        wrap.appendChild(scroll);
       } catch (e) {
         loading.style.display = 'none';
         errEl.style.display = 'block';
