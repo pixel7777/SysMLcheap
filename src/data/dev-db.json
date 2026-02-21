@@ -1,0 +1,9 @@
+{
+  "learnerProfiles": [
+    { "id": "heidi", "name": "Heidi" },
+    { "id": "new-learner", "name": "New Learner" }
+  ],
+  "progressCheckpoints": [
+    { "id": "cp-001", "learnerId": "heidi", "active": true, "storyId": "story-001" }
+  ]
+}

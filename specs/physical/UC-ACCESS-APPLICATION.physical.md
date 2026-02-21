@@ -2,7 +2,7 @@
 
 **Use Case Ref:** `uc_access_application`  
 **LDS Ref:** `specs/use-cases/UC-ACCESS-APPLICATION.lds.yaml`  
-**Status:** Draft for review  
+**Status:** Baseline approved (2026-02-21)  
 **Last Updated:** 2026-02-21
 
 ## 1) Scope and Outcome
@@ -89,11 +89,11 @@ Response (intent shape):
 
 | Topic | Options | Proposed for MVP | Reasoning | Final Decision |
 |---|---|---|---|---|
-| Session model | JWT vs server session | Server session | Simpler revocation + less token complexity for MVP | TBD |
-| Context lookup | DB-only vs cache-first | DB-only first | Simpler consistency model early | TBD |
-| Entry routing location | Edge middleware vs app service layer | App service layer | Easier debugging, fewer platform-specific constraints | TBD |
-| Dependency health check | Live synchronous vs cached heartbeat | Cached heartbeat | Lower entry latency + graceful degradation | TBD |
-| Host platform | Vercel/Fly/Railway/Render | Evaluate against criteria below | Need concrete deploy constraints | TBD |
+| Session model | JWT vs server session | Server session | Simpler revocation + less token complexity for MVP | Server-session style behavior in single-user dev baseline |
+| Context lookup | DB-only vs cache-first | DB-only first | Simpler consistency model early | DB-first baseline (no cache layer yet) |
+| Entry routing location | Edge middleware vs app service layer | App service layer | Easier debugging, fewer platform-specific constraints | App service layer |
+| Dependency health check | Live synchronous vs cached heartbeat | Cached heartbeat | Lower entry latency + graceful degradation | Degraded-mode flag for MVP stub; evolve to cached health snapshot |
+| Host platform | Vercel/Fly/Railway/Render | Evaluate against criteria below | Need concrete deploy constraints | Existing free AWS EC2 + GitHub |
 
 ## 7) Host Platform Evaluation Criteria
 

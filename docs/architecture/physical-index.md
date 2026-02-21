@@ -4,7 +4,7 @@ Human-reviewable index for physical architecture intent and implementation refle
 
 | Use Case | Physical Spec | Status | Implemented Components | Last Verified Commit |
 |---|---|---|---|---|
-| `uc_access_application` | [`specs/physical/UC-ACCESS-APPLICATION.physical.md`](../../specs/physical/UC-ACCESS-APPLICATION.physical.md) | Draft for review | _TBD after implementation_ | _TBD_ |
+| `uc_access_application` | [`specs/physical/UC-ACCESS-APPLICATION.physical.md`](../../specs/physical/UC-ACCESS-APPLICATION.physical.md) | Baseline approved; scaffold in progress | `src/server.js`, `src/entryDecision.js`, placeholder routes/screens, tests | _update on merge_ |
 
 ## Update Rule
 
