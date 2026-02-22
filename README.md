@@ -22,9 +22,10 @@ npm test
 ```
 
 ## Key files
-- `src/server.js` — HTTP app with placeholder screens/routes
-- `src/entryDecision.js` — entry decision logic
-- `src/data/dev-db.json` — dev stub data
-- `src/entryDecision.test.js` — acceptance-aligned logic tests
+- `src/server.js` — RP prototype server (UI + API endpoints)
+- `src/storyStore.js` — session/chat/codex persistence
+- `src/mockDm.js` — mock DM generation for no-key development
+- `src/storyPipeline.test.js` — turn persistence and codex tests
+- `src/entryDecision.js` — legacy entry decision logic
 - `specs/physical/UC-ACCESS-APPLICATION.physical.md` — physical architecture intent + decisions
-- `docs/architecture/UC-ACCESS-APPLICATION-implementation-plan.md` — plain-English implementation plan
+- `docs/architecture/RP-VERTICAL-SLICE-IMPLEMENTATION-PLAN.md` — current RP slice implementation plan

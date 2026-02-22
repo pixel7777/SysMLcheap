@@ -24,3 +24,4 @@ Each decision record follows a simple format: context, decision, and rationale.
 | 016 | [Live YAML-rendered diagrams via Mermaid](016-live-diagrams-mermaid.md) | 2026-02-13 | Accepted |
 | 017 | [Logical Delivery Spec (LDS) workflow layer](017-logical-delivery-spec-workflow.md) | 2026-02-21 | Accepted |
 | 018 | [Source-of-truth guardrails and review gates](018-source-of-truth-guardrails-and-review-gates.md) | 2026-02-21 | Accepted |
+| 019 | [RP-first vertical slice and API-first model access strategy](019-rp-vertical-slice-and-model-access-strategy.md) | 2026-02-22 | Accepted |
